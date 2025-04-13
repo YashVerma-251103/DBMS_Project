@@ -14,7 +14,7 @@ const LoginSignUp = () => {
   const [signupData, setSignupData] = useState({
     name: "",
     contactNumber: "",
-    role: "user",
+    role: "",
     password: "",
     confirmPassword: "",
   });
@@ -183,7 +183,7 @@ const LoginSignUp = () => {
                 onChange={handleSignupChange}
                 required
               >
-                
+                <option value="" disabled>Select Role</option>
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
                 <option value="Employee">Employee</option>

@@ -74,7 +74,7 @@ const CustomerHome = () => {
     try {
       const endpoint = entitySchemas[activeTab]?.endpoint;
       if (endpoint) {
-        const response = await fetch(`http://localhost:3000/${endpoint}`);
+        const response = await fetch(`http://localhost:5000/${endpoint}`);
         const result = await response.json();
         setData(result);
       } else {
@@ -117,7 +117,7 @@ const CustomerHome = () => {
     e.preventDefault();
     try {
       const endpoint = entitySchemas[activeTab].endpoint.split('?')[0]; // Remove query parameters for submission
-      let url = `http://localhost:3000/${endpoint}`;
+      let url = `http://localhost:5000/${endpoint}`;
       let method = 'POST';
 
       if (currentItem) {
@@ -156,7 +156,7 @@ const CustomerHome = () => {
         const primaryKeys = entitySchemas[activeTab].fields.filter(f => !f.editable);
         if (primaryKeys.length === 1) {
           const endpoint = entitySchemas[activeTab].endpoint.split('?')[0];
-          const response = await fetch(`http://localhost:3000/${endpoint}/${item[primaryKeys[0].name]}`, {
+          const response = await fetch(`http://localhost:5000/${endpoint}/${item[primaryKeys[0].name]}`, {
             method: 'DELETE',
           });
 

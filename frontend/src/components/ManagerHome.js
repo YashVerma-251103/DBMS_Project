@@ -113,7 +113,7 @@ const ManagerHome = () => {
     // Fetch the manager's facility ID on component mount
     const fetchManagerFacility = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/facilities?Manager_Id=${managerId}`);
+        const response = await fetch(`http://localhost:5000/facilities?Manager_Id=${managerId}`);
         const result = await response.json();
         if (result && result.length > 0) {
           setManagerFacilityId(result[0].Facility_Id); // Assuming one manager per facility
@@ -143,7 +143,7 @@ const ManagerHome = () => {
         let endpoint = schema.endpoint;
         // Replace placeholders with the actual facility ID
         endpoint = endpoint.replace('/* Fetch Facility ID of the manager */', managerFacilityId);
-        const response = await fetch(`http://localhost:3000/${endpoint}`);
+        const response = await fetch(`http://localhost:5000/${endpoint}`);
         const result = await response.json();
         setData(result);
       } else {
@@ -192,7 +192,7 @@ const ManagerHome = () => {
       const schema = entitySchemas[activeTab];
       if (!schema || !schema.endpoint) return;
       let endpoint = schema.endpoint.split('?')[0]; // Remove query parameters for submission
-      let url = `http://localhost:3000/${endpoint}`;
+      let url = `http://localhost:5000/${endpoint}`;
       let method = 'POST';
 
       if (currentItem) {

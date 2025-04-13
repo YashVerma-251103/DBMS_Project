@@ -53,7 +53,7 @@ const LoginSignUp = () => {
     };
   
     try {
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch('http://localhost:5000/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -71,7 +71,7 @@ const LoginSignUp = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:3000/users?loginId=${loginData.loginId}`);
+      const response = await fetch(`http://localhost:5000/users?loginId=${loginData.loginId}`);
       const users = await response.json();
   
       if (users.length > 0 && users[0].password === loginData.password) {

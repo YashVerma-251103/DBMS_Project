@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-
 import { FaBars, FaTimes, FaPlus, FaEdit, FaTrash, FaSignOutAlt } from 'react-icons/fa';
 import { MdFlight, MdPeople, MdBusiness, MdEvent, MdFeedback, 
          MdAttachMoney, MdInventory, MdSchedule, MdMessage, MdWarning } from 'react-icons/md';
 import "./AdminHome.css";
+import axios from 'axios';
 
 const AdminHome = () => {
   const [activeTab, setActiveTab] = useState('employees');
@@ -14,6 +14,17 @@ const AdminHome = () => {
   const [currentItem, setCurrentItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Search flights state
+  const [searchParams, setSearchParams] = useState({
+    flight_number: '',
+    airline: '',
+    departure_date: ''
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchError, setSearchError] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+
 
     // Icons mapping for each entity
     const entityIcons = {
@@ -106,14 +117,13 @@ const AdminHome = () => {
     },
     flights: {
       fields: [
-        { name: 'Flight_Id', type: 'number', editable: false },
-        { name: 'Flight_Number', type: 'text', editable: true },
-        { name: 'Airline', type: 'text', editable: true },
-        { name: 'Departure_Time', type: 'datetime-local', editable: true },
-        { name: 'Arrival_Time', type: 'datetime-local', editable: true },
-        { name: 'Status', type: 'select', options: ['On Time', 'Delayed', 'Cancelled', 'Departed', 'Arrived'], editable: true },
-        { name: 'Gate', type: 'text', editable: true },
-        { name: 'Terminal', type: 'text', editable: true }
+        { name: 'flight_number', type: 'text', editable: true },
+        { name: 'airline', type: 'text', editable: true },
+        { name: 'departure_time', type: 'datetime-local', editable: true },
+        { name: 'arrival_time', type: 'datetime-local', editable: true },
+        { name: 'status', type: 'select', options: ['On Time', 'Delayed', 'Cancelled', 'Departed', 'Arrived'], editable: true },
+        { name: 'gate', type: 'text', editable: true },
+        { name: 'terminal', type: 'text', editable: true }
       ],
       endpoint: 'flights'
     },
@@ -156,13 +166,16 @@ const AdminHome = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    if (activeTab !== 'flights') {
+      setShowSearchResults(false);
+      setSearchResults([]);
+    }
   }, [activeTab]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3000/${entitySchemas[activeTab].endpoint}`);
+      const response = await fetch(`http://localhost:5000/${entitySchemas[activeTab].endpoint}`);
       const result = await response.json();
       setData(result);
     } catch (error) {
@@ -171,6 +184,172 @@ const AdminHome = () => {
       setLoading(false);
     }
   };
+
+    // Add search flights handler
+    const handleSearchFlights = async (e) => {
+      e.preventDefault();
+      setSearchError('');
+      try {
+        const response = await axios.get('http://localhost:5000/flights/search', {
+          params: searchParams
+        });
+        setSearchResults(response.data);
+        setShowSearchResults(true);
+      } catch (err) {
+        console.error('Error fetching flight data:', err);
+        setSearchError('Error fetching flight data. Please try again later.');
+        setShowSearchResults(false);
+      }
+    };
+
+      // Add search input change handler
+      const handleSearchChange = (e) => {
+        setSearchParams({
+          ...searchParams,
+          [e.target.name]: e.target.value
+        });
+      };
+
+      const renderFlightsTable = (flightsData) => {
+        return (
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Flight Number</th>
+                  <th>Airline</th>
+                  <th>Departure Time</th>
+                  <th>Arrival Time</th>
+                  <th>Status</th>
+                  <th>Gate</th>
+                  <th>Terminal</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flightsData.map((flight, index) => (
+                  <tr key={index}>
+                    <td>{flight.flight_number}</td>
+                    <td>{flight.airline}</td>
+                    <td>{new Date(flight.departure_time).toLocaleString()}</td>
+                    <td>{flight.arrival_time ? new Date(flight.arrival_time).toLocaleString() : 'N/A'}</td>
+                    <td>{flight.status}</td>
+                    <td>{flight.gate}</td>
+                    <td>{flight.terminal}</td>
+                    <td className="actions-cell">
+                      <button 
+                        onClick={() => handleEdit(flight)} 
+                        className="btn-edit"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(flight)} 
+                        className="btn-delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      };
+    
+
+      const renderFlightsSection = () => {
+        return (
+          <div style={{ padding: '1rem' }}>
+            <div className="table-header">
+              <h3>FLIGHT SEARCH & MANAGEMENT</h3>
+              <button onClick={handleCreate} className="btn-primary">
+                <FaPlus /> Create New Flight
+              </button>
+            </div>
+    
+            {/* Search Flights Form */}
+            <div className="search-flights-container">
+              <h4>Search Flights</h4>
+              <form onSubmit={handleSearchFlights} className="search-form">
+                <div className="form-group">
+                  <label htmlFor="flight_number">Flight Number: </label>
+                  <input
+                    type="text"
+                    id="flight_number"
+                    name="flight_number"
+                    value={searchParams.flight_number}
+                    onChange={handleSearchChange}
+                    placeholder="e.g., 6e202"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="airline">Airline: </label>
+                  <input
+                    type="text"
+                    id="airline"
+                    name="airline"
+                    value={searchParams.airline}
+                    onChange={handleSearchChange}
+                    placeholder="e.g., indigo"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="departure_date">Departure Date: </label>
+                  <input
+                    type="date"
+                    id="departure_date"
+                    name="departure_date"
+                    value={searchParams.departure_date}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <button type="submit" className="btn-primary">
+                    Search
+                  </button>
+                  {showSearchResults && (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowSearchResults(false)}
+                      className="btn-secondary"
+                    >
+                      Show All Flights
+                    </button>
+                  )}
+                </div>
+              </form>
+              {searchError && <p className="error-message">{searchError}</p>}
+            </div>
+    
+            {/* Search Results or Full List */}
+            {showSearchResults ? (
+              <>
+                <h4>Search Results:</h4>
+                {searchResults.length > 0 ? (
+                  renderFlightsTable(searchResults)
+                ) : (
+                  <p>No flights found matching your criteria.</p>
+                )}
+              </>
+            ) : (
+              loading ? (
+                <div className="loading-container">
+                  <div className="loading-spinner"></div>
+                  <p>Loading flights...</p>
+                </div>
+              ) : (
+                data.length > 0 ? (
+                  renderFlightsTable(data)
+                ) : (
+                  <p>No flights available.</p>
+                )
+              )
+            )}
+          </div>
+        );
+      };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -203,7 +382,7 @@ const AdminHome = () => {
     e.preventDefault();
     try {
       const endpoint = entitySchemas[activeTab].endpoint;
-      let url = `http://localhost:3000/${endpoint}`;
+      let url = `http://localhost:5000/${endpoint}`;
       let method = 'POST';
       
       if (currentItem) {
@@ -244,7 +423,7 @@ const AdminHome = () => {
         const primaryKeys = entitySchemas[activeTab].fields.filter(f => !f.editable);
         if (primaryKeys.length === 1) {
           const endpoint = entitySchemas[activeTab].endpoint;
-          const response = await fetch(`http://localhost:3000/${endpoint}/${item[primaryKeys[0].name]}`, {
+          const response = await fetch(`http://localhost:5000/${endpoint}/${item[primaryKeys[0].name]}`, {
             method: 'DELETE',
           });
 
@@ -326,6 +505,10 @@ const AdminHome = () => {
     const navigate = useNavigate();
   
   const renderTable = () => {
+    if (activeTab === 'flights') {
+      return renderFlightsSection();
+    }
+
     if (loading) return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

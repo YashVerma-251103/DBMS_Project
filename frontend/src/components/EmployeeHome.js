@@ -76,7 +76,7 @@ const EmployeeHome = () => {
     try {
       const schema = entitySchemas[activeTab];
       if (schema && schema.endpoint) {
-        const response = await fetch(`http://localhost:3000/${schema.endpoint}`);
+        const response = await fetch(`http://localhost:5000/${schema.endpoint}`);
         const result = await response.json();
         setData(Array.isArray(result) ? result : [result]); // Handle single object responses
       } else {
@@ -108,7 +108,7 @@ const EmployeeHome = () => {
     try {
       const schema = entitySchemas[activeTab];
       if (!schema || !schema.endpoint) return;
-      const url = `http://localhost:3000/${schema.endpoint}`;
+      const url = `http://localhost:5000/${schema.endpoint}`;
       const method = 'PUT'; // Assuming profile update uses PUT
 
       const response = await fetch(url, {

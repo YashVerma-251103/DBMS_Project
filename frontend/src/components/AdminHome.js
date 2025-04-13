@@ -216,6 +216,7 @@ const AdminHome = () => {
             <table>
               <thead>
                 <tr>
+                  <th>Select</th>
                   <th>Flight Number</th>
                   <th>Airline</th>
                   <th>Departure Time</th>
@@ -228,7 +229,19 @@ const AdminHome = () => {
               </thead>
               <tbody>
                 {flightsData.map((flight, index) => (
-                  <tr key={index}>
+                  <tr 
+                    key={index} 
+                    className={currentItem?.flight_number === flight.flight_number ? 'selected-row' : ''}
+                    onClick={() => setCurrentItem(flight)}
+                  >
+                    <td>
+                      <input 
+                        type="radio" 
+                        name="selectedFlight"
+                        checked={currentItem?.flight_number === flight.flight_number}
+                        onChange={() => setCurrentItem(flight)}
+                      />
+                    </td>
                     <td>{flight.flight_number}</td>
                     <td>{flight.airline}</td>
                     <td>{new Date(flight.departure_time).toLocaleString()}</td>
@@ -238,13 +251,19 @@ const AdminHome = () => {
                     <td>{flight.terminal}</td>
                     <td className="actions-cell">
                       <button 
-                        onClick={() => handleEdit(flight)} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(flight);
+                        }} 
                         className="btn-edit"
                       >
                         <FaEdit />
                       </button>
                       <button 
-                        onClick={() => handleDelete(flight)} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(flight);
+                        }} 
                         className="btn-delete"
                       >
                         <FaTrash />
@@ -264,9 +283,18 @@ const AdminHome = () => {
           <div style={{ padding: '1rem' }}>
             <div className="table-header">
               <h3>FLIGHT SEARCH & MANAGEMENT</h3>
-              <button onClick={handleCreate} className="btn-primary">
-                <FaPlus /> Create New Flight
-              </button>
+              <div className="action-buttons">
+                <button 
+                  onClick={() => setEditMode(true)} 
+                  className="btn-update"
+                  disabled={!currentItem}
+                >
+                  <FaEdit /> Update Selected Flight
+                </button>
+                <button onClick={handleCreate} className="btn-primary">
+                  <FaPlus /> Create New Flight
+                </button>
+              </div>
             </div>
     
             {/* Search Flights Form */}
@@ -386,18 +414,20 @@ const AdminHome = () => {
       let method = 'POST';
       
       if (currentItem) {
-        // For update, we need to identify the primary key(s)
-        const primaryKeys = entitySchemas[activeTab].fields.filter(f => !f.editable);
-        if (primaryKeys.length === 1) {
-          url += `/${currentItem[primaryKeys[0].name]}`;
+        // For flights, we use flight_number as the primary key
+        if (activeTab === 'flights') {
+          url += `/${currentItem.flight_number}`;
           method = 'PUT';
         } else {
-          // Handle composite primary keys if needed
-          console.error('Composite primary keys not fully implemented');
-          return;
+          // Handle other entities as before
+          const primaryKeys = entitySchemas[activeTab].fields.filter(f => !f.editable);
+          if (primaryKeys.length === 1) {
+            url += `/${currentItem[primaryKeys[0].name]}`;
+            method = 'PUT';
+          }
         }
       }
-
+  
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -405,15 +435,37 @@ const AdminHome = () => {
         },
         body: JSON.stringify(formData),
       });
-
+  
       if (response.ok) {
-        fetchData();
+        const result = await response.json();
+        console.log('Update successful:', result);
+        
+        // Show success message
+        alert('Flight updated successfully!');
+        
+        // Refresh the data
+        if (activeTab === 'flights') {
+          if (showSearchResults) {
+            // If we're showing search results, re-run the search
+            await handleSearchFlights({ preventDefault: () => {} });
+          } else {
+            // Otherwise fetch all flights
+            fetchData();
+          }
+        } else {
+          fetchData();
+        }
+        
         setEditMode(false);
+        setCurrentItem(null);
       } else {
-        console.error('Error saving data');
+        const errorData = await response.json();
+        console.error('Error saving data:', errorData);
+        alert(`Error updating flight: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to update flight. Please check console for details.');
     }
   };
 

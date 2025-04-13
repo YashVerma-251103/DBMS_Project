@@ -1,0 +1,390 @@
+/* LoginSignUp.css - Airport Management Theme - Enhanced Styling */
+body {
+  background-color: #e6f7ff; /* Light blue background for the whole page */
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 170, 255, 0.1) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(0, 170, 255, 0.1) 0%, transparent 20%),
+    linear-gradient(135deg, #e0f2ff 0%, #f0f8ff 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Airplane animation in background */
+body::before {
+  content: "✈";
+  position: fixed;
+  top: 10%;
+  left: -50px;
+  font-size: 200px;
+  color: rgba(30, 136, 229, 0.4);
+  animation: airplaneFly 25s linear infinite;
+  z-index: -1;
+}
+
+body::after {
+  content: "✈";
+  position: fixed;
+  top: 70%;
+  left: -50px;
+  font-size: 200px;
+  transform: scaleX(-1);
+  color: rgba(30, 136, 229, 0.4);
+  animation: airplaneFly2 25s linear infinite;
+  
+  /* z-index: -1; */
+}
+
+@keyframes airplaneFly {
+  0% { transform: translateX(-50px) translateY(0); }
+  50% { transform: translateX(calc(100vw + 50px)) translateY(-50px); }
+  100% { transform: translateX(calc(200vw + 50px)) translateY(0); }
+}
+
+@keyframes airplaneFly2 {
+  0% { transform: translateX(calc(100vw + 50px)) translateY(20px) scaleX(-1); } /* Start from right, different vertical position */
+  50% { transform: translateX(-50px) translateY(-30px) scaleX(-1); } /* Move to the left */
+  100% { transform: translateX(calc(-100vw - 50px)) translateY(20px) scaleX(-1); } /* Continue off-screen to the left */
+}
+
+.login-signup-container {
+  max-width: 550px;
+  margin: 60px auto;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid #cce0ff;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+.login-signup-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(to right, #2962ff, #00b0ff);
+  border-radius: 12px 12px 0 0;
+  z-index: 1;
+}
+
+/* Cloud decorations */
+.login-signup-container::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  z-index: -1;
+  box-shadow: 
+    60px -30px 0 40px rgba(255, 255, 255, 0.7),
+    -30px 60px 0 50px rgba(255, 255, 255, 0.6);
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #b3d4ff;
+  position: relative;
+}
+
+.tabs::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 170, 255, 0.3), transparent);
+}
+
+.tab {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 500;
+  color: #4d79a6;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  position: relative;
+  z-index: 2;
+}
+
+.tab.active {
+  color: #1e88e5;
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background-color: #1e88e5;
+  border-radius: 2px 2px 0 0;
+}
+
+.tab:hover:not(.active) {
+  color: #00aaff;
+  background-color: rgba(230, 247, 255, 0.5);
+}
+
+h2 {
+  color: #0d47a1;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 26px;
+  position: relative;
+}
+
+h2::after {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(to right, #1e88e5, #00b0ff);
+  margin: 15px auto 0;
+  border-radius: 3px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #375a80;
+  font-size: 15px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid #a6cfff;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: rgba(230, 247, 255, 0.5);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2);
+}
+
+/* Input icons */
+.form-group::after {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 15px;
+  top: 40px;
+  color: #4d79a6;
+  opacity: 0.6;
+}
+
+.form-group.email::after {
+  content: "\f0e0"; /* envelope icon */
+}
+
+.form-group.password::after {
+  content: "\f023"; /* lock icon */
+}
+
+.form-group.name::after {
+  content: "\f007"; /* user icon */
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(to right, #1e88e5, #42a5f5);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(to right, #1565c0, #1e88e5);
+  box-shadow: 0 4px 10px rgba(30, 136, 229, 0.3);
+}
+
+.submit-btn:hover::before {
+  left: 100%;
+}
+
+.generated-login-id {
+  margin-top: 30px;
+  padding: 18px;
+  background-color: #e3f2fd;
+  border-radius: 6px;
+  border-left: 6px solid #00aaff;
+  color: #0d47a1;
+  font-size: 15px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.generated-login-id strong {
+  color: #1e88e5;
+  font-weight: 600;
+}
+
+/* Airport-themed decorative elements */
+.decorative-line {
+  height: 3px;
+  background: linear-gradient(to right, transparent, #00b0ff, transparent);
+  margin: 30px 0;
+  position: relative;
+}
+
+.decorative-line::after {
+  content: "✈";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 0 10px;
+  color: #1e88e5;
+}
+
+.airport-icon {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #1e88e5;
+  font-size: 36px;
+}
+
+/* Animation for form elements */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+  animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: calc(var(--order) * 0.1s);
+  opacity: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body {
+    padding: 20px;
+  }
+  
+  .login-signup-container {
+    margin: 30px auto;
+    padding: 30px;
+  }
+
+  .login-signup-container::after {
+    display: none;
+  }
+
+  .tab {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    padding: 14px;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+
+  .generated-login-id {
+    margin-top: 20px;
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .airport-icon {
+    font-size: 30px;
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab {
+    font-size: 14px;
+    padding: 10px 8px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+  
+  body::before {
+    font-size: 18px;
+  }
+}

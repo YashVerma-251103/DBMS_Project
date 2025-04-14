@@ -114,3 +114,6 @@ def update_flight(flight_number):
     finally:
         cur.close()
         conn.close()
+
+
+

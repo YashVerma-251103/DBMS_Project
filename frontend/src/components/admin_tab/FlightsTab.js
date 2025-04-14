@@ -7,7 +7,10 @@ const FlightsTab = () => {
   const [searchParams, setSearchParams] = useState({
     flight_number: '',
     airline: '',
-    departure_date: ''
+    departure_time_start: '',
+    departure_time_end: '',
+    arrival_time_start: '',
+    arrival_time_end: ''
   });
   const [searchResults, setSearchResults] = useState([]);
   const [data, setData] = useState([]);
@@ -41,8 +44,17 @@ const FlightsTab = () => {
     e.preventDefault();
     setSearchError('');
     try {
+      // Convert datetime-local inputs to ISO format for the API
+      const params = {
+        ...searchParams,
+        departure_time_start: searchParams.departure_time_start ? new Date(searchParams.departure_time_start).toISOString() : '',
+        departure_time_end: searchParams.departure_time_end ? new Date(searchParams.departure_time_end).toISOString() : '',
+        arrival_time_start: searchParams.arrival_time_start ? new Date(searchParams.arrival_time_start).toISOString() : '',
+        arrival_time_end: searchParams.arrival_time_end ? new Date(searchParams.arrival_time_end).toISOString() : '',
+      };
+
       const response = await axios.get('http://localhost:5000/flights/search', {
-        params: searchParams,
+        params: params,
       });
       setSearchResults(response.data);
       setShowSearchResults(true);
@@ -79,7 +91,11 @@ const FlightsTab = () => {
   const handleEdit = (flight) => {
     setEditMode(true);
     setCurrentFlight(flight);
-    setFormData({ ...flight });
+    setFormData({ 
+      ...flight,
+      departure_time: flight.departure_time ? flight.departure_time.slice(0, 16) : '',
+      arrival_time: flight.arrival_time ? flight.arrival_time.slice(0, 16) : ''
+    });
   };
 
   // Submit form to either create or update.
@@ -98,8 +114,15 @@ const FlightsTab = () => {
       method = 'POST';
     }
 
+    // Convert datetime-local to ISO format for the API
+    const submissionData = {
+      ...formData,
+      departure_time: formData.departure_time ? new Date(formData.departure_time).toISOString() : '',
+      arrival_time: formData.arrival_time ? new Date(formData.arrival_time).toISOString() : ''
+    };
+
     // Since the backend is using request.args, convert formData into a query string.
-    const params = new URLSearchParams(formData).toString();
+    const params = new URLSearchParams(submissionData).toString();
     const url = `${baseURL}?${params}`;
 
     try {
@@ -254,16 +277,49 @@ const FlightsTab = () => {
               placeholder="e.g., Indigo"
             />
           </div>
+          
           <div className="form-group">
-            <label htmlFor="departure_date">Departure Date:</label>
+            <label htmlFor="departure_time_start">Departure Time (From):</label>
             <input
-              type="date"
-              id="departure_date"
-              name="departure_date"
-              value={searchParams.departure_date}
+              type="datetime-local"
+              id="departure_time_start"
+              name="departure_time_start"
+              value={searchParams.departure_time_start}
               onChange={handleSearchChange}
             />
           </div>
+          <div className="form-group">
+            <label htmlFor="departure_time_end">Departure Time (To):</label>
+            <input
+              type="datetime-local"
+              id="departure_time_end"
+              name="departure_time_end"
+              value={searchParams.departure_time_end}
+              onChange={handleSearchChange}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="arrival_time_start">Arrival Time (From):</label>
+            <input
+              type="datetime-local"
+              id="arrival_time_start"
+              name="arrival_time_start"
+              value={searchParams.arrival_time_start}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="arrival_time_end">Arrival Time (To):</label>
+            <input
+              type="datetime-local"
+              id="arrival_time_end"
+              name="arrival_time_end"
+              value={searchParams.arrival_time_end}
+              onChange={handleSearchChange}
+            />
+          </div>
+          
           <div className="form-group">
             <button type="submit" className="btn-primary">Search</button>
             {showSearchResults && (

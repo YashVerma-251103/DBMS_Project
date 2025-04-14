@@ -7,12 +7,14 @@ import "./AdminHome.css";
 // Import your tab components (for now, we include flights as an example)
 // You can add more imports once you build those components.
 import FlightsTab from './admin_tab/FlightsTab';
+import FacilityTab from './admin_tab/FacilityTab';
 import BookingsTab from './admin_tab/BookingsTab';
 import IncidentTab from './admin_tab/IncidentTab';
 // import EmployeesTab from './EmployeesTab';
 
 const tabComponents = {
   flights: FlightsTab,
+  facility: FacilityTab,
   bookings: BookingsTab,
   incidents: IncidentTab,
   // employees: EmployeesTab,

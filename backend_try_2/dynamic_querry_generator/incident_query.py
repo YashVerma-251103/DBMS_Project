@@ -20,65 +20,104 @@ CREATE TABLE Incident (
 """
 
 
+# def build_incident_search_query(params):
+#     """
+#     Build a dynamic SQL query for the Incident table.
+    
+#     Expects a dictionary `params` with possible keys:
+#     - incident_id
+#     - reported_by
+#     - facility_id
+#     - status
+#     - reported_at
+#     - resolved_at
+
+#     - order_by
+#     - limit
+
+#     Returns:
+#         (query_string, values) tuple.
+#     """
+    
+    
+#     # Our base query – note: we're referring to the Incident table as "Incident"
+#     query = "SELECT * FROM Incident WHERE 1=1"
+#     values = []
+    
+#     if 'incident_id' in params:
+#         query += " AND Incident_Id = %s"
+#         values.append(params['incident_id'])
+    
+#     if 'reported_by' in params:
+#         query += " AND Reported_By = %s"
+#         values.append(params['reported_by'])
+    
+#     if 'facility_id' in params:
+#         query += " AND Facility_Id = %s"
+#         values.append(params['facility_id'])
+
+#     if 'status' in params:
+#         query += " AND Status = %s"
+#         values.append(params['status'])        
+    
+#     if 'reported_at' in params:
+#         query += " AND Reported_At = %s"
+#         values.append(params['reported_at'])
+    
+#     if 'resolved_at' in params:
+#         query += " AND Resolved_At = %s"
+#         values.append(params['resolved_at'])
+
+#     if 'order_by' in params:
+#         query += " ORDER BY %s" % params['order_by']
+#         # Note: Be cautious with this to avoid SQL injection.
+
+#     if 'limit' in params:
+#         query += " LIMIT %s"
+#         values.append(params['limit'])
+
+#     return query, values
+    
+
 def build_incident_search_query(params):
     """
     Build a dynamic SQL query for the Incident table.
-    
-    Expects a dictionary `params` with possible keys:
-    - incident_id
-    - reported_by
-    - facility_id
-    - status
-    - reported_at
-    - resolved_at
-
-    - order_by
-    - limit
-
-    Returns:
-        (query_string, values) tuple.
     """
-    
-    
-    # Our base query – note: we're referring to the Incident table as "Incident"
     query = "SELECT * FROM Incident WHERE 1=1"
     values = []
     
-    if 'incident_id' in params:
+    if params.get('incident_id') and params['incident_id'] != '':
         query += " AND Incident_Id = %s"
         values.append(params['incident_id'])
     
-    if 'reported_by' in params:
+    if params.get('reported_by') and params['reported_by'] != '':
         query += " AND Reported_By = %s"
         values.append(params['reported_by'])
     
-    if 'facility_id' in params:
+    if params.get('facility_id') and params['facility_id'] != '':
         query += " AND Facility_Id = %s"
         values.append(params['facility_id'])
 
-    if 'status' in params:
+    if params.get('status') and params['status'] != '':
         query += " AND Status = %s"
         values.append(params['status'])        
     
-    if 'reported_at' in params:
+    if params.get('reported_at') and params['reported_at'] != '':
         query += " AND Reported_At = %s"
         values.append(params['reported_at'])
     
-    if 'resolved_at' in params:
+    if params.get('resolved_at') and params['resolved_at'] != '':
         query += " AND Resolved_At = %s"
         values.append(params['resolved_at'])
 
-    if 'order_by' in params:
+    if params.get('order_by') and params['order_by'] != '':
         query += " ORDER BY %s" % params['order_by']
-        # Note: Be cautious with this to avoid SQL injection.
 
-    if 'limit' in params:
+    if params.get('limit') and params['limit'] != '':
         query += " LIMIT %s"
         values.append(params['limit'])
 
     return query, values
-    
-
 
 
 def build_incident_update_query(params):

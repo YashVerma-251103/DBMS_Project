@@ -5,7 +5,7 @@ from db import get_db_connection
 bp = Blueprint("users", __name__, url_prefix="/users")
 
 
-@bp.route("", method=['POST'])
+@bp.route("", methods=['POST'])
 def create_user():
     data = request.get_json()
     if not data:

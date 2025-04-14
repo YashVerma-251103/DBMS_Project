@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from psycopg2 import extras, IntegrityError
 from db import get_db_connection
-from backend.dynamic_querry_generator.booking_query import (
+from dynamic_querry_generator.booking_query import (
     build_booking_search_query,
     build_booking_update_query,
     build_booking_delete_query,
@@ -42,6 +42,7 @@ def search_bookings():
 
     cur.close()
     conn.close()
+    print(data)
     return jsonify(data)
 
 

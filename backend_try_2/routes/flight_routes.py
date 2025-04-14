@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from psycopg2 import extras, IntegrityError
 from db import get_db_connection
-from backend.dynamic_querry_generator.flight_query import (
+from dynamic_querry_generator.flight_query import (
     build_flight_search_query,
     build_flight_update_query,
     build_flight_delete_query,
@@ -45,7 +45,7 @@ def search_flights():
 
     cur.close()
     conn.close()
-
+    print(data)
     return jsonify(data)
 
 

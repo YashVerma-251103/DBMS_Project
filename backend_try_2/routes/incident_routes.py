@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from psycopg2 import extras, IntegrityError
 from db import get_db_connection
-from backend.dynamic_querry_generator.incident_query import (
+from dynamic_querry_generator.incident_query import (
     build_incident_search_query,
     build_incident_update_query,
     build_incident_delete_query,

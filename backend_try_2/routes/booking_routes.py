@@ -19,7 +19,7 @@ def search_bookings():
     search_params = {
         "booking_id": normalized_args.get("booking_id"),
         "facility_id": normalized_args.get("facility_id"),
-        "aadhar_no": normalized_args.get("aadhar_no"),
+        "aadhaar_no": normalized_args.get("aadhaar_no"),
         "employee_id": normalized_args.get("employee_id"),
         "date_time": normalized_args.get("date_time"),
         "payment_status": normalized_args.get("payment_status")
@@ -55,7 +55,7 @@ def update_booking():
     update_params = {
         "booking_id": normalized_args.get("booking_id"),
         "facility_id": normalized_args.get("facility_id"),
-        "aadhar_no": normalized_args.get("aadhar_no"),
+        "aadhaar_no": normalized_args.get("aadhaar_no"),
         "employee_id": normalized_args.get("employee_id"),
         "date_time": normalized_args.get("date_time"),
         "payment_status": normalized_args.get("payment_status"),
@@ -140,7 +140,7 @@ def create_booking():
 
     booking_params = {
         "facility_id": normalized_args.get("facility_id"),
-        "aadhar_no": normalized_args.get("aadhar_no"),
+        "aadhaar_no": normalized_args.get("aadhaar_no"),
         "employee_id": normalized_args.get("employee_id"),
         "date_time": normalized_args.get("date_time"),
         "payment_status": normalized_args.get("payment_status"),

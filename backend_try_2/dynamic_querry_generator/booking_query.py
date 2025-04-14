@@ -8,7 +8,7 @@ def build_booking_search_query(params):
     Expects a dictionary `params` with possible keys:
     - booking_id
     - facility_id
-    - aadhar_no
+    - aadhaar_no
     - employee_id
     - date_time
     - payment_status
@@ -27,9 +27,9 @@ def build_booking_search_query(params):
     if params.get("facility_id"):
         query += " AND facility_id = %s"
         values.append(params["facility_id"])
-    if params.get("aadhar_no"):
-        query += " AND aadhar_no = %s"
-        values.append(params["aadhar_no"])
+    if params.get("aadhaar_no"):
+        query += " AND aadhaar_no = %s"
+        values.append(params["aadhaar_no"])
     if params.get("employee_id"):
         query += " AND employee_id = %s"
         values.append(params["employee_id"])
@@ -50,7 +50,7 @@ def build_booking_update_query(params):
     Expects a dictionary `params` with possible keys:
     - booking_id
     - facility_id
-    - aadhar_no
+    - aadhaar_no
     - employee_id
     - date_time
     - payment_status
@@ -67,9 +67,9 @@ def build_booking_update_query(params):
     if params.get("facility_id"):
         set_clauses.append("facility_id = %s")
         values.append(params["facility_id"])
-    if params.get("aadhar_no"):
-        set_clauses.append("aadhar_no = %s")
-        values.append(params["aadhar_no"])
+    if params.get("aadhaar_no"):
+        set_clauses.append("aadhaar_no = %s")
+        values.append(params["aadhaar_no"])
     if params.get("employee_id"):
         set_clauses.append("employee_id = %s")
         values.append(params["employee_id"])
@@ -122,7 +122,7 @@ def build_booking_insert_query(params):
 
     Expects a dictionary `params` with possible keys:
     - facility_id
-    - aadhar_no
+    - aadhaar_no
     - employee_id
     - date_time
     - payment_status
@@ -141,10 +141,10 @@ def build_booking_insert_query(params):
         columns.append("facility_id")
         placeholders.append("%s")
         values.append(params["facility_id"])
-    if params.get("aadhar_no"):
-        columns.append("aadhar_no")
+    if params.get("aadhaar_no"):
+        columns.append("aadhaar_no")
         placeholders.append("%s")
-        values.append(params["aadhar_no"])
+        values.append(params["aadhaar_no"])
     if params.get("employee_id"):
         columns.append("employee_id")
         placeholders.append("%s")

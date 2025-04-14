@@ -10,6 +10,7 @@ import FlightsTab from './admin_tab/FlightsTab';
 import FacilityTab from './admin_tab/FacilityTab';
 import BookingsTab from './admin_tab/BookingsTab';
 import IncidentTab from './admin_tab/IncidentTab';
+import FeedbackTab from './admin_tab/FeedbackTab';
 import RevenueTab from './admin_tab/RevenueTab';
 // import EmployeesTab from './EmployeesTab';
 
@@ -18,6 +19,7 @@ const tabComponents = {
   facility: FacilityTab,
   bookings: BookingsTab,
   incidents: IncidentTab,
+  feedback: FeedbackTab,
   revenue: RevenueTab,
   // employees: EmployeesTab,
   // Add additional tab mappings here

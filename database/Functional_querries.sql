@@ -45,30 +45,30 @@ WHERE f.Facility_Id IN (
 
 -- Insertion Queries
 
--- Insert a new booking record.
-INSERT INTO Booking (Facility_Id, Aadhaar_No, Employee_Id, Date_Time, Payment_Status)
-VALUES (1, '111122223333', 2, '2025-03-19 12:00:00', 'Pending');
+-- -- Insert a new booking record.
+-- INSERT INTO Booking (Facility_Id, Aadhaar_No, Employee_Id, Date_Time, Payment_Status)
+-- VALUES (1, '111122223333', 2, '2025-03-19 12:00:00', 'Pending');
 
--- Insert a new flight record.
-INSERT INTO Flight (Flight_Number, Airline, Departure_Time, Arrival_Time, Status, Gate, Terminal)
-VALUES ('AI202', 'Air India', '2025-04-20 15:30:00', '2025-04-20 18:00:00', 'On Time', 'G5', 'T1');
+-- -- Insert a new flight record.
+-- INSERT INTO Flight (Flight_Number, Airline, Departure_Time, Arrival_Time, Status, Gate, Terminal)
+-- VALUES ('AI202', 'Air India', '2025-04-20 15:30:00', '2025-04-20 18:00:00', 'On Time', 'G5', 'T1');
 
 
--- Update Queries
--- Update the payment status of a booking.
-UPDATE Booking
-SET Payment_Status = 'Completed'
-WHERE Booking_Id = 10 AND Facility_Id = 2 AND Aadhaar_No = '123456789012';
+-- -- Update Queries
+-- -- Update the payment status of a booking.
+-- UPDATE Booking
+-- SET Payment_Status = 'Completed'
+-- WHERE Booking_Id = 10 AND Facility_Id = 2 AND Aadhaar_No = '123456789012';
 
--- Update flight status for a specific flight.
-UPDATE Flight
-SET Status = 'Delayed'
-WHERE Flight_Number = 'AI202';
+-- -- Update flight status for a specific flight.
+-- UPDATE Flight
+-- SET Status = 'Delayed'
+-- WHERE Flight_Number = 'AI202';
 
--- Deletion Queries
--- Delete an incident record that has been marked as resolved.
-DELETE FROM Incident
-WHERE Incident_Id = 10 AND Status = 'Resolved';
+-- -- Deletion Queries
+-- -- Delete an incident record that has been marked as resolved.
+-- DELETE FROM Incident
+-- WHERE Incident_Id = 10 AND Status = 'Resolved';
 
 
 -- Complex Join with Internal Communication & Scheduling
@@ -103,14 +103,14 @@ HAVING COUNT(b.Booking_Id) >= 2;
 
 -- Flight Information for Upcoming Departures
 -- Retrieve flights scheduled to depart within the next five hours from 6 am.
-SELECT 
-    Flight_Number, 
-    Airline, 
-    Departure_Time, 
-    Arrival_Time, 
-    Status
-FROM Flight
-WHERE Departure_Time BETWEEN TIMESTAMP '2025-03-20 06:00:00' AND TIMESTAMP '2025-03-20 06:00:00' + INTERVAL '5 hours';
+-- SELECT 
+--     Flight_Number, 
+--     Airline, 
+--     Departure_Time, 
+--     Arrival_Time, 
+--     Status
+-- FROM Flight
+-- WHERE Departure_Time BETWEEN TIMESTAMP '2025-03-20 06:00:00' AND TIMESTAMP '2025-03-20 06:00:00' + INTERVAL '5 hours';
 
 
 -- Revenue Analysis per Facility

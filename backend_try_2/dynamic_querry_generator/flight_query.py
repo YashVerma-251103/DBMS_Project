@@ -2,49 +2,115 @@
 
 
 
+# def build_flight_search_query(params):
+#     """
+#     Build a dynamic SQL query for the Flight table.
+    
+#     Expects a dictionary `params` with possible keys:
+#     - flight_number
+#     - airline
+#     - departure_date  (if you want to filter by the date of departure)
+#     - departure_time (if you want to filter by the flight's departure time)
+#     - arrival_date  (if you want to filter by the date of arrival)
+#     - arrival_time   (if you want to filter by the flight's arrival time)
+#     - status (if you want to filter by the flight's status)
+#     - gate (if you want to filter by the flight's gate)
+#     - terminal (if you want to filter by the flight's terminal)
+
+#     Returns:
+#         (query_string, values) tuple.
+    
+#     """
+
+#     # Our base query – note: we're referring to the Flight table as "flight"
+#     query = "SELECT * FROM flight WHERE 1=1"
+#     values = []
+
+#     # If the key exists and has a value, add the filter. Use lower-case column names.
+#     if params.get("flight_number"):
+#         query += " AND flight_number ILIKE %s"
+#         values.append(params["flight_number"])
+#     if params.get("airline"):
+#         query += " AND airline ILIKE %s"
+#         values.append(params["airline"])
+#     if params.get("departure_date"):
+#         query += " AND DATE(departure_time) = %s"
+#         values.append(params["departure_date"])
+#     if params.get("departure_time"):
+#         query += " AND departure_time::time = %s"
+#         values.append(params["departure_time"])
+#     if params.get("arrival_date"):
+#         query += " AND DATE(arrival_time) = %s"
+#         values.append(params["arrival_date"])
+#     if params.get("arrival_time"):
+#         query += " AND arrival_time::time = %s"
+#         values.append(params["arrival_time"])
+#     if params.get("status"):
+#         query += " AND status ILIKE %s"
+#         values.append(params["status"])
+#     if params.get("gate"):
+#         query += " AND gate ILIKE %s"
+#         values.append(params["gate"])
+#     if params.get("terminal"):
+#         query += " AND terminal ILIKE %s"
+#         values.append(params["terminal"])
+
+#     return query, values
+
+
 def build_flight_search_query(params):
     """
     Build a dynamic SQL query for the Flight table.
-    
+
     Expects a dictionary `params` with possible keys:
-    - flight_number
-    - airline
-    - departure_date  (if you want to filter by the date of departure)
-    - departure_time (if you want to filter by the flight's departure time)
-    - arrival_date  (if you want to filter by the date of arrival)
-    - arrival_time   (if you want to filter by the flight's arrival time)
-    - status (if you want to filter by the flight's status)
-    - gate (if you want to filter by the flight's gate)
-    - terminal (if you want to filter by the flight's terminal)
+      - flight_number
+      - airline
+      - departure_time_start  (for filtering flights leaving after this time)
+      - departure_time_end    (for filtering flights leaving before this time)
+      - arrival_time_start    (for filtering flights arriving after this time)
+      - arrival_time_end      (for filtering flights arriving before this time)
+      - status
+      - gate
+      - terminal
 
     Returns:
         (query_string, values) tuple.
-    
     """
-
     # Our base query – note: we're referring to the Flight table as "flight"
     query = "SELECT * FROM flight WHERE 1=1"
     values = []
 
-    # If the key exists and has a value, add the filter. Use lower-case column names.
     if params.get("flight_number"):
         query += " AND flight_number ILIKE %s"
         values.append(params["flight_number"])
     if params.get("airline"):
         query += " AND airline ILIKE %s"
         values.append(params["airline"])
-    if params.get("departure_date"):
-        query += " AND DATE(departure_time) = %s"
-        values.append(params["departure_date"])
-    if params.get("departure_time"):
-        query += " AND departure_time::time = %s"
-        values.append(params["departure_time"])
-    if params.get("arrival_date"):
-        query += " AND DATE(arrival_time) = %s"
-        values.append(params["arrival_date"])
-    if params.get("arrival_time"):
-        query += " AND arrival_time::time = %s"
-        values.append(params["arrival_time"])
+    
+    # Departure time filtering:
+    if params.get("departure_time_start") and params.get("departure_time_end"):
+        query += " AND departure_time BETWEEN %s AND %s"
+        values.append(params["departure_time_start"])
+        values.append(params["departure_time_end"])
+    elif params.get("departure_time_start"):
+        query += " AND departure_time >= %s"
+        values.append(params["departure_time_start"])
+    elif params.get("departure_time_end"):
+        query += " AND departure_time <= %s"
+        values.append(params["departure_time_end"])
+        
+    # Arrival time filtering:
+    if params.get("arrival_time_start") and params.get("arrival_time_end"):
+        query += " AND arrival_time BETWEEN %s AND %s"
+        values.append(params["arrival_time_start"])
+        values.append(params["arrival_time_end"])
+    elif params.get("arrival_time_start"):
+        query += " AND arrival_time >= %s"
+        values.append(params["arrival_time_start"])
+    elif params.get("arrival_time_end"):
+        query += " AND arrival_time <= %s"
+        values.append(params["arrival_time_end"])
+    
     if params.get("status"):
         query += " AND status ILIKE %s"
         values.append(params["status"])
@@ -56,6 +122,8 @@ def build_flight_search_query(params):
         values.append(params["terminal"])
 
     return query, values
+
+
 
 def build_flight_update_query(params):
     """

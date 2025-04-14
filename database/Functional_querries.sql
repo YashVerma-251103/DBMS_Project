@@ -101,8 +101,8 @@ GROUP BY e.Employee_Id, e.Name
 HAVING COUNT(b.Booking_Id) >= 2;
 
 
--- Flight Information for Upcoming Departures
--- Retrieve flights scheduled to depart within the next five hours from 6 am.
+-- -- Flight Information for Upcoming Departures
+-- -- Retrieve flights scheduled to depart within the next five hours from 6 am.
 -- SELECT 
 --     Flight_Number, 
 --     Airline, 
@@ -113,14 +113,14 @@ HAVING COUNT(b.Booking_Id) >= 2;
 -- WHERE Departure_Time BETWEEN TIMESTAMP '2025-03-20 06:00:00' AND TIMESTAMP '2025-03-20 06:00:00' + INTERVAL '5 hours';
 
 
--- Revenue Analysis per Facility
--- Calculate the average monthly revenue for each facility for a given year (e.g., 2023).
-SELECT 
-    r.Facility_Id, 
-    f.Name AS Facility_Name, 
-    AVG(r.Monthly_Revenue) AS Avg_Monthly_Revenue,
-    r.Financial_Year
-FROM Revenue r
-JOIN Facility f ON r.Facility_Id = f.Facility_Id
-WHERE r.Financial_Year = 2023
-GROUP BY r.Facility_Id, f.Name, r.Financial_Year;
+-- -- Revenue Analysis per Facility
+-- -- Calculate the average monthly revenue for each facility for a given year (e.g., 2023).
+-- SELECT 
+--     r.Facility_Id, 
+--     f.Name AS Facility_Name, 
+--     AVG(r.Monthly_Revenue) AS Avg_Monthly_Revenue,
+--     r.Financial_Year
+-- FROM Revenue r
+-- JOIN Facility f ON r.Facility_Id = f.Facility_Id
+-- WHERE r.Financial_Year = 2023
+-- GROUP BY r.Facility_Id, f.Name, r.Financial_Year;

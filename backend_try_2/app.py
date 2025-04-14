@@ -6,6 +6,7 @@ from routes.booking_routes import bp as booking_bp
 from routes.flight_routes import bp as flight_bp
 from routes.incident_routes import bp as incident_bp
 from routes.facility_routes import bp as facility_bp
+from routes.feedback_routes import bp as feedback_bp
 
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ app.register_blueprint(flight_bp)
 app.register_blueprint(booking_bp)
 app.register_blueprint(incident_bp)
 app.register_blueprint(facility_bp)
+app.register_blueprint(feedback_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)

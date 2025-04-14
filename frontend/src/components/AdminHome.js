@@ -25,6 +25,17 @@ const AdminHome = () => {
   const [searchError, setSearchError] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
 
+  //Search bookings state
+  const [bookingSearchParams, setBookingSearchParams] = useState({
+    booking_id: '',
+    customer_name: '',
+    facility_name: '',
+    date: ''
+  });
+  const [bookingSearchResults, setBookingSearchResults] = useState([]);
+  const [bookingSearchError, setBookingSearchError] = useState('');
+  const [showBookingSearchResults, setShowBookingSearchResults] = useState(false);
+
 
     // Icons mapping for each entity
     const entityIcons = {
@@ -76,11 +87,13 @@ const AdminHome = () => {
     bookings: {
       fields: [
         { name: 'Booking_Id', type: 'number', editable: false },
-        { name: 'Facility_Id', type: 'number', editable: true },
-        { name: 'Aadhaar_No', type: 'text', editable: true },
-        { name: 'Employee_Id', type: 'number', editable: true },
         { name: 'Date_Time', type: 'datetime-local', editable: true },
-        { name: 'Payment_Status', type: 'select', options: ['Pending', 'Completed', 'Cancelled'], editable: true }
+        { name: 'Payment_Status', type: 'select', options: ['Pending', 'Completed', 'Cancelled'], editable: true },
+        { name: 'Facility_Name', type: 'text', editable: false },
+        { name: 'Type', type: 'text', editable: false },
+        { name: 'Customer_Name', type: 'text', editable: false },
+        { name: 'Contact_No', type: 'tel', editable: false },
+        { name: 'Employee_Name', type: 'text', editable: false }
       ],
       endpoint: 'bookings'
     },
@@ -172,18 +185,42 @@ const AdminHome = () => {
     }
   }, [activeTab]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:5000/${entitySchemas[activeTab].endpoint}`);
-      const result = await response.json();
+const fetchData = async () => {
+  setLoading(true);
+  try {
+    const endpoint = entitySchemas[activeTab].endpoint;
+    const response = await fetch(`http://localhost:5000/${endpoint}`);
+    const result = await response.json();
+    
+    // For bookings, we don't need transformation since the API already returns objects
+    if (activeTab === 'bookings') {
       setData(result);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+    } else {
+      setData(result);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+//Booking Handler
+const handleSearchBookings = async (e) => {
+  e.preventDefault();
+  setBookingSearchError('');
+  try {
+    const response = await axios.get('http://localhost:5000/bookings/search', {
+      params: bookingSearchParams
+    });
+    setBookingSearchResults(response.data);
+    setShowBookingSearchResults(true);
+  } catch (err) {
+    console.error('Error fetching booking data:', err);
+    setBookingSearchError('Error fetching booking data. Please try again later.');
+    setShowBookingSearchResults(false);
+  }
+};
 
     // Add search flights handler
     const handleSearchFlights = async (e) => {
@@ -202,6 +239,15 @@ const AdminHome = () => {
       }
     };
 
+    //booking search input change handler
+
+    const handleBookingSearchChange = (e) => {
+      setBookingSearchParams({
+        ...bookingSearchParams,
+        [e.target.name]: e.target.value
+      });
+    };
+
       // Add search input change handler
       const handleSearchChange = (e) => {
         setSearchParams({
@@ -209,6 +255,78 @@ const AdminHome = () => {
           [e.target.name]: e.target.value
         });
       };
+
+//render bookings table
+      const renderBookingsTable = (bookingsData) => {
+        return (
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Booking ID</th>
+                  <th>Customer Name</th>
+                  <th>Contact No</th>
+                  <th>Facility Name</th>
+                  <th>Type</th>
+                  <th>Date & Time</th>
+                  <th>Payment Status</th>
+                  <th>Employee Assigned</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookingsData.map((booking, index) => (
+                  <tr 
+                    key={index} 
+                    className={currentItem?.Booking_Id === booking.Booking_Id ? 'selected-row' : ''}
+                    onClick={() => setCurrentItem(booking)}
+                  >
+                    <td>
+                      <input 
+                        type="radio" 
+                        name="selectedBooking"
+                        checked={currentItem?.Booking_Id === booking.Booking_Id}
+                        onChange={() => setCurrentItem(booking)}
+                      />
+                    </td>
+                    <td>{booking.Booking_Id}</td>
+                    <td>{booking.Customer_Name}</td>
+                    <td>{booking.Contact_No}</td>
+                    <td>{booking.Facility_Name}</td>
+                    <td>{booking.Type}</td>
+                    <td>{new Date(booking.Date_Time).toLocaleString()}</td>
+                    <td>{booking.Payment_Status}</td>
+                    <td>{booking.Employee_Name}</td>
+                    <td className="actions-cell">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(booking);
+                        }} 
+                        className="btn-edit"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(booking);
+                        }} 
+                        className="btn-delete"
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      };
+
+      //render flights table
 
       const renderFlightsTable = (flightsData) => {
         return (
@@ -276,8 +394,121 @@ const AdminHome = () => {
           </div>
         );
       };
-    
 
+      //render bookings section
+      const renderBookingsSection = () => {
+        return (
+          <div style={{ padding: '1rem' }}>
+            <div className="table-header">
+              <h3>BOOKING MANAGEMENT</h3>
+              <div className="action-buttons">
+                <button 
+                  onClick={() => setEditMode(true)} 
+                  className="btn-update"
+                  disabled={!currentItem}
+                >
+                  <FaEdit /> Update Selected Booking
+                </button>
+                <button onClick={handleCreate} className="btn-primary">
+                  <FaPlus /> Create New Booking
+                </button>
+              </div>
+            </div>
+      
+            {/* Search Bookings Form */}
+            <div className="search-container">
+              <h4>Search Bookings</h4>
+              <form onSubmit={handleSearchBookings} className="search-form">
+                <div className="form-group">
+                  <label htmlFor="booking_id">Booking ID: </label>
+                  <input
+                    type="text"
+                    id="booking_id"
+                    name="booking_id"
+                    value={bookingSearchParams.booking_id}
+                    onChange={handleBookingSearchChange}
+                    placeholder="e.g., 12345"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="customer_name">Customer Name: </label>
+                  <input
+                    type="text"
+                    id="customer_name"
+                    name="customer_name"
+                    value={bookingSearchParams.customer_name}
+                    onChange={handleBookingSearchChange}
+                    placeholder="e.g., John Doe"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="facility_name">Facility Name: </label>
+                  <input
+                    type="text"
+                    id="facility_name"
+                    name="facility_name"
+                    value={bookingSearchParams.facility_name}
+                    onChange={handleBookingSearchChange}
+                    placeholder="e.g., VIP Lounge"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="date">Date: </label>
+                  <input
+                    type="date"
+                    id="date"
+                    name="date"
+                    value={bookingSearchParams.date}
+                    onChange={handleBookingSearchChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <button type="submit" className="btn-primary">
+                    Search
+                  </button>
+                  {showBookingSearchResults && (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowBookingSearchResults(false)}
+                      className="btn-secondary"
+                    >
+                      Show All Bookings
+                    </button>
+                  )}
+                </div>
+              </form>
+              {bookingSearchError && <p className="error-message">{bookingSearchError}</p>}
+            </div>
+      
+            {/* Search Results or Full List */}
+            {showBookingSearchResults ? (
+              <>
+                <h4>Search Results:</h4>
+                {bookingSearchResults.length > 0 ? (
+                  renderBookingsTable(bookingSearchResults)
+                ) : (
+                  <p>No bookings found matching your criteria.</p>
+                )}
+              </>
+            ) : (
+              loading ? (
+                <div className="loading-container">
+                  <div className="loading-spinner"></div>
+                  <p>Loading bookings...</p>
+                </div>
+              ) : (
+                data.length > 0 ? (
+                  renderBookingsTable(data)
+                ) : (
+                  <p>No bookings available.</p>
+                )
+              )
+            )}
+          </div>
+        );
+      };
+    
+//render flights section
       const renderFlightsSection = () => {
         return (
           <div style={{ padding: '1rem' }}>
@@ -414,9 +645,9 @@ const AdminHome = () => {
       let method = 'POST';
       
       if (currentItem) {
-        // For flights, we use flight_number as the primary key
-        if (activeTab === 'flights') {
-          url += `/${currentItem.flight_number}`;
+        // For bookings, we use Booking_Id as the primary key
+        if (activeTab === 'bookings') {
+          url += `/${currentItem.Booking_Id}`;
           method = 'PUT';
         } else {
           // Handle other entities as before
@@ -439,51 +670,32 @@ const AdminHome = () => {
       if (response.ok) {
         const result = await response.json();
         console.log('Update successful:', result);
-        
-        // Show success message
-        alert('Flight updated successfully!');
-        
-        // Refresh the data
-        if (activeTab === 'flights') {
-          if (showSearchResults) {
-            // If we're showing search results, re-run the search
-            await handleSearchFlights({ preventDefault: () => {} });
-          } else {
-            // Otherwise fetch all flights
-            fetchData();
-          }
-        } else {
-          fetchData();
-        }
-        
+        alert('Booking updated successfully!');
+        fetchData();
         setEditMode(false);
         setCurrentItem(null);
       } else {
         const errorData = await response.json();
         console.error('Error saving data:', errorData);
-        alert(`Error updating flight: ${errorData.error || 'Unknown error'}`);
+        alert(`Error updating booking: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to update flight. Please check console for details.');
+      alert('Failed to update booking. Please check console for details.');
     }
   };
-
   const handleDelete = async (item) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+    if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
-        const primaryKeys = entitySchemas[activeTab].fields.filter(f => !f.editable);
-        if (primaryKeys.length === 1) {
-          const endpoint = entitySchemas[activeTab].endpoint;
-          const response = await fetch(`http://localhost:5000/${endpoint}/${item[primaryKeys[0].name]}`, {
-            method: 'DELETE',
-          });
-
-          if (response.ok) {
-            fetchData();
-          } else {
-            console.error('Error deleting data');
-          }
+        const endpoint = entitySchemas[activeTab].endpoint;
+        const response = await fetch(`http://localhost:5000/${endpoint}/${item.Booking_Id}`, {
+          method: 'DELETE',
+        });
+  
+        if (response.ok) {
+          fetchData();
+        } else {
+          console.error('Error deleting booking');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -559,6 +771,9 @@ const AdminHome = () => {
   const renderTable = () => {
     if (activeTab === 'flights') {
       return renderFlightsSection();
+    }
+    if (activeTab === 'bookings') {
+      return renderBookingsSection();
     }
 
     if (loading) return (

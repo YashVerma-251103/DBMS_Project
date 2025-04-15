@@ -16,9 +16,9 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<Home />} /> */}
           {/* <Route path="/" element={<SearchFlights />} /> */}
-          {/* <Route path="/" element={<LoginSignUp />} /> */}
           
-          <Route path="/" element={<AdminHome />} />
+          <Route path="/" element={<LoginSignUp />} />
+          {/* <Route path="/" element={<AdminHome />} /> */}
           {/* <Route path="/" element={<CustomerHome />} /> */}
 
           {/* <Route path="/" element={<ManagerHome />} /> */}

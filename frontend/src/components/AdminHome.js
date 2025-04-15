@@ -12,6 +12,8 @@ import BookingsTab from './admin_tab/BookingsTab';
 import IncidentTab from './admin_tab/IncidentTab';
 import FeedbackTab from './admin_tab/FeedbackTab';
 import RevenueTab from './admin_tab/RevenueTab';
+import EmployeeTab from './admin_tab/EmployeeTab';
+import Staff_ScheduleTab from './admin_tab/Staff_ScheduleTab';
 // import EmployeesTab from './EmployeesTab';
 
 const tabComponents = {
@@ -21,6 +23,8 @@ const tabComponents = {
   incidents: IncidentTab,
   feedback: FeedbackTab,
   revenue: RevenueTab,
+  employee: EmployeeTab,
+  staff_schedule: Staff_ScheduleTab,
   // employees: EmployeesTab,
   // Add additional tab mappings here
 };

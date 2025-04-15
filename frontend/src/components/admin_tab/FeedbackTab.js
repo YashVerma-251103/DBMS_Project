@@ -231,7 +231,7 @@ const FeedbackTab = () => {
             <FaEdit /> Update Selected Feedback
           </button>
           <button onClick={handleCreate} className="btn-primary">
-            <FaPlus /> Create New Feedback
+            <FaPlus /> Add a Feedback
           </button>
         </div>
       </div>

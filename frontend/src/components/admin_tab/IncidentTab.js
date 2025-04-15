@@ -231,7 +231,7 @@ const IncidentTab = () => {
             <FaEdit /> Update Selected Incident
           </button>
           <button onClick={handleCreate} className="btn-primary">
-            <FaPlus /> Create New Incident
+            <FaPlus /> Add an Incident
           </button>
         </div>
       </div>

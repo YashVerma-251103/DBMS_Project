@@ -230,7 +230,7 @@ const FacilityTab = () => {
             <FaEdit /> Update Selected Facility
           </button>
           <button onClick={handleCreate} className="btn-primary">
-            <FaPlus /> Create New Facility
+            <FaPlus /> Create a New Facility
           </button>
         </div>
       </div>

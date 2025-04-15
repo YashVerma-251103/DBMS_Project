@@ -246,7 +246,7 @@ const FlightsTab = () => {
             <FaEdit /> Update Selected Flight
           </button>
           <button onClick={handleCreate} className="btn-primary">
-            <FaPlus /> Create New Flight
+            <FaPlus /> Add a New Flight
           </button>
         </div>
       </div>

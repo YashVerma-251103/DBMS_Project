@@ -217,7 +217,7 @@ const BookingsTab = () => {
             <FaEdit /> Update Selected Booking
           </button>
           <button onClick={handleCreate} className="btn-primary">
-            <FaPlus /> Create New Booking
+            <FaPlus /> Add a New Booking
           </button>
         </div>
       </div>

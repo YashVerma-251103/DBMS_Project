@@ -59,13 +59,22 @@ CREATE TABLE Feedback (
 );
 
 -- 6. Revenue Table (tracks financial performance per facility and year)
+-- CREATE TABLE Revenue (
+--     Financial_Year INT CHECK (Financial_Year >= 1962),
+--     Facility_Id INT NOT NULL,
+--     Monthly_Revenue DECIMAL(10,2) CHECK (Monthly_Revenue >= 0),
+--     Yearly_Revenue DECIMAL(12,2) CHECK (Yearly_Revenue >= 0),
+--     PRIMARY KEY (Financial_Year, Facility_Id),
+--     CONSTRAINT fk_revenue_facility FOREIGN KEY (Facility_Id) REFERENCES Facility(Facility_Id) ON DELETE CASCADE
+-- );
 CREATE TABLE Revenue (
-    Financial_Year INT CHECK (Financial_Year >= 1962),
+    Revenue_Id SERIAL PRIMARY KEY,
     Facility_Id INT NOT NULL,
-    Monthly_Revenue DECIMAL(10,2) CHECK (Monthly_Revenue >= 0),
-    Yearly_Revenue DECIMAL(12,2) CHECK (Yearly_Revenue >= 0),
-    PRIMARY KEY (Financial_Year, Facility_Id),
-    CONSTRAINT fk_revenue_facility FOREIGN KEY (Facility_Id) REFERENCES Facility(Facility_Id) ON DELETE CASCADE
+    Financial_Year INT NOT NULL,
+    Month DATE NOT NULL,    -- new column: store a representative date for the month (e.g. the 1st day)
+    Monthly_Revenue NUMERIC(12,2),
+    Yearly_Revenue NUMERIC(12,2),
+    CONSTRAINT fk_revenue_facility FOREIGN KEY (Facility_Id) REFERENCES Facility(Facility_Id)
 );
 
 -- 7. Inventory Table (manages items per facility)

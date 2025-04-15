@@ -21,7 +21,7 @@
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f9fc;
   position: relative;
   overflow-x: hidden;
@@ -355,8 +355,12 @@ tr:hover {
 
 /* Animations */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Styles */
@@ -364,18 +368,18 @@ tr:hover {
   .mobile-header {
     display: flex;
   }
-  
+
   .sidebar {
     transform: translateX(-100%);
   }
-  
+
   .admin-dashboard.sidebar-open .sidebar {
     transform: translateX(0);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   }
-  
+
   .admin-dashboard.sidebar-open::before {
-    content: '';
+    content: "";
     position: fixed;
     top: 0;
     left: 0;
@@ -384,12 +388,12 @@ tr:hover {
     background: rgba(0, 0, 0, 0.5);
     z-index: 800;
   }
-  
+
   .main-content {
     margin-left: 0;
     padding-top: 80px;
   }
-  
+
   .sidebar-close {
     display: block;
   }
@@ -409,7 +413,6 @@ tr:hover {
     width: 100%;
   }
 }
-
 
 /* Add these to your CSS file */
 
@@ -518,4 +521,17 @@ tr {
 
 tr:hover {
   background-color: #f5f5f5;
+}
+
+.form-group input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.form-group input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+  margin-right: 5px;
+  vertical-align: middle;
 }

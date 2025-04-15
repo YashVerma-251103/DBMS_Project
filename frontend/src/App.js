@@ -19,6 +19,7 @@ function App() {
           {/* <Route path="/" element={<LoginSignUp />} /> */}
           
           <Route path="/" element={<AdminHome />} />
+          {/* <Route path="/" element={<CustomerHome />} /> */}
 
           {/* <Route path="/" element={<ManagerHome />} /> */}
           {/* <Route path="/" element={<EmployeeHome />} /> */}

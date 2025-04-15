@@ -15,18 +15,71 @@ CREATE TABLE Staff_Schedule (
 );
 """
 
+# def build_staff_schedule_search_query(params):
+#     """
+#     Build a dynamic SQL query for the Staff_Schedule table.
+
+#     Expects a dictionary `params` with possible keys:
+#     - schedule_id
+#     - employee_id
+#     - facility_id
+#     - shift_date
+#     - shift_start
+#     - shift_end
+#     - task_description
+
+#     Returns:
+#         (query_string, values) tuple.
+#     """
+#     query = "SELECT * FROM Staff_Schedule WHERE 1=1"
+#     values = []
+
+#     if params.get('schedule_id') and params['schedule_id'] != '':
+#         query += " AND Schedule_Id = %s"
+#         values.append(params['schedule_id'])
+
+#     if params.get('employee_id') and params['employee_id'] != '':
+#         query += " AND Employee_Id = %s"
+#         values.append(params['employee_id'])
+
+#     if params.get('facility_id') and params['facility_id'] != '':
+#         query += " AND Facility_Id = %s"
+#         values.append(params['facility_id'])
+
+#     if params.get('shift_date') and params['shift_date'] != '':
+#         query += " AND Shift_Date = %s"
+#         values.append(params['shift_date'])
+
+#     if params.get('shift_start') and params['shift_start'] != '':
+#         query += " AND Shift_Start = %s"
+#         values.append(params['shift_start'])
+
+#     if params.get('shift_end') and params['shift_end'] != '':
+#         query += " AND Shift_End = %s"
+#         values.append(params['shift_end'])
+
+#     if params.get('task_description') and params['task_description'] != '':
+#         query += " AND Task_Description = %s"
+#         values.append(params['task_description'])
+
+#     return query, values
+
+
+
 def build_staff_schedule_search_query(params):
     """
     Build a dynamic SQL query for the Staff_Schedule table.
 
     Expects a dictionary `params` with possible keys:
-    - schedule_id
-    - employee_id
-    - facility_id
-    - shift_date
-    - shift_start
-    - shift_end
-    - task_description
+      - schedule_id
+      - employee_id
+      - facility_id
+      - shift_date
+      - shift_start
+      - shift_start_exact (optional flag: "true" means exact match)
+      - shift_end
+      - shift_end_exact (optional flag: "true" means exact match)
+      - task_description
 
     Returns:
         (query_string, values) tuple.
@@ -50,12 +103,21 @@ def build_staff_schedule_search_query(params):
         query += " AND Shift_Date = %s"
         values.append(params['shift_date'])
 
+    # For Shift_Start field:
     if params.get('shift_start') and params['shift_start'] != '':
-        query += " AND Shift_Start = %s"
+        # Check for an exact match flag
+        if params.get('shift_start_exact', '').lower() == 'true':
+            query += " AND Shift_Start = %s"
+        else:
+            query += " AND Shift_Start >= %s"
         values.append(params['shift_start'])
 
+    # For Shift_End field:
     if params.get('shift_end') and params['shift_end'] != '':
-        query += " AND Shift_End = %s"
+        if params.get('shift_end_exact', '').lower() == 'true':
+            query += " AND Shift_End = %s"
+        else:
+            query += " AND Shift_End <= %s"
         values.append(params['shift_end'])
 
     if params.get('task_description') and params['task_description'] != '':

@@ -14,46 +14,6 @@ WHERE r.Financial_Year = 2023
 GROUP BY r.Facility_Id, f.Name, r.Financial_Year;
 
 """
-
-
-
-# def build_calculate_revenue(params):
-#     """
-#     Build a query to calculate the average monthly or yearly revenue from a given year to a given year and facility.
-#     - if end date is none then treat it as after the start date
-#     - if start date is none then treat it as before the end date
-#     """
-
-#     # Extract parameters from the input dictionary
-#     facility_id = params.get('facility_id')
-#     start_date = params.get('start_date')
-#     end_date = params.get('end_date')
-#     revenue_type = params.get('revenue_type', 'monthly')  # Default to monthly revenue if not specified
-
-#     # Initialize the base query
-#     query = "SELECT r.Facility_Id, f.Name AS Facility_Name, AVG(r.Monthly_Revenue) AS Avg_Monthly_Revenue, r.Financial_Year FROM Revenue r JOIN Facility f ON r.Facility_Id = f.Facility_Id"
-
-#     # Add WHERE clause based on provided parameters
-#     where_clauses = []
-#     if facility_id:
-#         where_clauses.append(f"r.Facility_Id = {facility_id}")
-#     if start_date:
-#         where_clauses.append(f"r.Financial_Year >= '{start_date}'")
-#     if end_date:
-#         where_clauses.append(f"r.Financial_Year <= '{end_date}'")
-
-#     if where_clauses:
-#         query += " WHERE " + " AND ".join(where_clauses)
-
-#     # Add GROUP BY clause
-#     query += " GROUP BY r.Facility_Id, f.Name, r.Financial_Year"
-
-#     return query
-
-
-
-
-
 import datetime
 
 def build_calculate_revenue(params):

@@ -14,6 +14,7 @@ const LoginSignUp = () => {
   const [signupData, setSignupData] = useState({
     name: "",
     contactNumber: "",
+    aaddhaar_no: "",
     role: "",
     password: "",
     confirmPassword: "",
@@ -47,6 +48,7 @@ const LoginSignUp = () => {
     const userData = {
       name: signupData.name,
       contactNumber: signupData.contactNumber,
+      aaddhaar_no: signupData.aaddhaar_no,
       role: signupData.role,
       password: signupData.password, // Hash this in production
       loginId: loginId
@@ -77,6 +79,8 @@ const LoginSignUp = () => {
       if (users.length > 0 && users[0].password === loginData.password) {
         alert('Login successful!');
         
+        localStorage.setItem('currentUser', JSON.stringify(users[0]));
+
         if (loginData.loginId.includes("admin")) {
           navigate("/AdminHome"); // redirect to AdminHome route
         } else if (loginData.loginId.includes("manager")) {
@@ -170,6 +174,17 @@ const LoginSignUp = () => {
                 id="contactNumber"
                 name="contactNumber"
                 value={signupData.contactNumber}
+                onChange={handleSignupChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="aaddhaar_no">Adhaar Number</label>
+              <input
+                type="int"
+                id="aaddhaar_no"
+                name="aaddhaar_no"
+                value={signupData.aaddhaar_no}
                 onChange={handleSignupChange}
                 required
               />

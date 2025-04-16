@@ -15,6 +15,7 @@ def create_user():
 
     name = data.get('name')
     contact_number = data.get('contactNumber')
+    aadhar_number= data.get('aaddhaar_no')
     role = data.get('role')
     login_id = data.get('loginId')
     password = data.get('password')
@@ -31,10 +32,10 @@ def create_user():
     cur = conn.cursor(cursor_factory=extras.RealDictCursor)
     try:
         cur.execute(
-            """INSERT INTO users (name, contact_number, role, password, login_id)
-               VALUES (%s, %s, %s, %s, %s)
-               RETURNING id, name, contact_number, role, password, login_id;""",
-            (name, contact_number, role, hashed_pw, login_id)
+            """INSERT INTO users (name, contact_number,aaddhaar_no, role, password, login_id)
+               VALUES (%s, %s, %s, %s, %s, %s)
+               RETURNING id, name, contact_number, aadhaar_number,role, password, login_id;""",
+            (name, contact_number, aadhar_number,role, hashed_pw, login_id)
         )
         conn.commit()
     except psycopg2.IntegrityError:
@@ -53,6 +54,7 @@ def create_user():
         "id": new_user["id"],
         "name": new_user["name"],
         "contactNumber": new_user["contact_number"],
+        "aaddhaar_no":new_user["aaddhaar_no"],
         "role": new_user["role"],
         "password": new_user["password"],       # This is the hashed password
         "loginId": new_user["login_id"]
@@ -71,7 +73,7 @@ def get_user_by_login():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=extras.RealDictCursor)
     cur.execute(
-        """SELECT id, name, contact_number, role, password, login_id
+        """SELECT id, name, contact_number, aaddhaar_no, role, password, login_id
            FROM users WHERE login_id = %s""",
         (login_id,)
     )
@@ -88,6 +90,7 @@ def get_user_by_login():
         "id": user["id"],
         "name": user["name"],
         "contactNumber": user["contact_number"],
+        "aaddhaar_no":user["aaddhaar_no"],
         "role": user["role"],
         "password": user["password"],     # hashed password
         "loginId": user["login_id"]

@@ -6,26 +6,6 @@
 - Name, Age, Sex, Nationality.
 
 ## Admin & staff
-### Admin
-- predefined user
-- unrivaled authority over everything
-### Staff:
-#### Hierarchy
-- Management
-    - (Airport Staff)
-        - Counter Staff
-        - Checkin and Boarding Staff
-        - cargo moving staff
-    - (ATC Staff)
-        - Air traffic Control Employees
-        - Runway management
-        - Hanger Management
-        - Planes and Flights management
-    - (general staff)
-        - security
-        - store staff
-        - hygiene staff
-        - lounge staff
-### Order:
+### creation Order:
 - Admin or creation engine takes input of details of new staff member
-- engine creates id adn 
+- engine creates id and inserts the record in the database.

@@ -6,10 +6,236 @@ A full-stack web application for managing airport facilities, staff, bookings, f
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, TypeScript, React Router v6, Axios |
-| Backend | Node.js, Express, TypeScript, ts-node-dev |
-| Database | PostgreSQL |
-| DB Driver | node-postgres (`pg`) |
+| Frontend | React 19, TypeScript, React Router v7, react-icons |
+| Backend | Node.js, Express 4, TypeScript, ts-node-dev |
+| Database | PostgreSQL 15 (hosted on Supabase) |
+| DB Driver | node-postgres (`pg`) with SSL |
+
+---
+
+## User Flow
+
+```mermaid
+flowchart TD
+    Start([User opens browser]) --> LP[LoginSignUp Page /]
+    LP --> TabChoice{Choose tab}
+
+    TabChoice -->|Sign Up| SU[Fill form\nname · contact · aadhaar · role · password]
+    SU --> GenID["Login ID auto-generated\n{contactNumber}_{role}"]
+    GenID --> PostUsers[POST /users]
+    PostUsers --> ShowID[Login ID displayed to user]
+    ShowID --> LP
+
+    TabChoice -->|Login| LF[Enter Login ID + Password]
+    LF --> GetUser[GET /users?loginId=...]
+    GetUser --> Auth{Password matches?}
+    Auth -->|No| Err[Invalid credentials]
+    Err --> LF
+    Auth -->|Yes| Store[Save user to localStorage]
+    Store --> RoleCheck{Role in loginId?}
+
+    RoleCheck -->|admin| AD[/AdminHome]
+    RoleCheck -->|manager| MG[/ManagerHome]
+    RoleCheck -->|employee| EM[/EmployeeHome]
+    RoleCheck -->|customer| CU[/CustomerHome]
+
+    AD --> ATabs["8 Tabs — Full CRUD\nFlights · Facility · Bookings · Incidents\nFeedback · Revenue · Employee · Staff Schedule"]
+    MG --> MTabs["7 Tabs — View + Limited Edit\nFacility · Employees · Bookings\nFeedback · Revenue · Staff Schedule"]
+    EM --> ETabs["3 Tabs — Mostly Read-Only\nProfile (edit own) · Facility · Bookings"]
+    CU --> CTabs["3 Tabs\nFacilities (view) · Bookings (own CRUD) · Profile (edit own)"]
+
+    ATabs -->|Logout| LP
+    MTabs -->|Logout| LP
+    ETabs -->|Logout| LP
+    CTabs -->|Logout| LP
+```
+
+---
+
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Browser["Browser — localhost:3000"]
+        direction TB
+        React["React 19 + TypeScript\nCreate React App"]
+        Router["React Router v7"]
+        LS["localStorage\ncurrentUser"]
+
+        subgraph UI["Pages"]
+            direction LR
+            P1["LoginSignUp"]
+            P2["AdminHome\n8 tabs"]
+            P3["ManagerHome\n7 tabs"]
+            P4["EmployeeHome\n3 tabs"]
+            P5["CustomerHome\n3 tabs"]
+            P6["SearchFlights\nPublic"]
+        end
+    end
+
+    subgraph API["Express Server — localhost:5000"]
+        direction TB
+        MW["CORS · express.json()"]
+        subgraph Routes["REST Routes"]
+            direction LR
+            R1["/users"]
+            R2["/flights"]
+            R3["/bookings"]
+            R4["/employees"]
+            R5["/facilities"]
+            R6["/incidents"]
+            R7["/feedback"]
+            R8["/revenue"]
+            R9["/staff_schedule"]
+        end
+    end
+
+    subgraph Supabase["Supabase — PostgreSQL 15"]
+        direction TB
+        Pool["pg.Pool + SSL"]
+        subgraph Tables["11 Tables"]
+            direction LR
+            T1["users"]
+            T2["Employee"]
+            T3["Facility"]
+            T4["Customer"]
+            T5["Booking"]
+            T6["Feedback"]
+            T7["Revenue"]
+            T8["Inventory"]
+            T9["Flight"]
+            T10["Staff_Schedule"]
+            T11["Communication"]
+            T12["Incident"]
+        end
+        Trigger["Trigger: check_manager_role\nBEFORE INSERT/UPDATE on Facility"]
+    end
+
+    Browser -->|"HTTP REST\nlocalhost:5000"| API
+    API -->|"pg Pool\nSSL · port 5432"| Supabase
+```
+
+---
+
+## Database Schema — Entity Relationships
+
+```mermaid
+erDiagram
+    Employee {
+        int Employee_Id PK
+        varchar Name
+        varchar Role
+        varchar Shift_Timings
+    }
+    Facility {
+        int Facility_Id PK
+        varchar Name
+        varchar Type
+        text Location
+        varchar Contact_No
+        varchar Opening_Hours
+        int Manager_Id FK
+    }
+    Customer {
+        varchar Aadhaar_No PK
+        varchar Customer_Name
+        int Age
+        varchar Contact_No
+    }
+    Booking {
+        int Booking_Id
+        int Facility_Id FK
+        varchar Aadhaar_No FK
+        int Employee_Id FK
+        timestamp Date_Time
+        varchar Payment_Status
+    }
+    Feedback {
+        int Feedback_Id
+        int Facility_Id FK
+        varchar Aadhaar_No FK
+        int Manager_Id FK
+        timestamp Date_Time
+        int Rating
+        text Comments
+    }
+    Revenue {
+        int Revenue_Id PK
+        int Facility_Id FK
+        int Financial_Year
+        date Month
+        numeric Monthly_Revenue
+        numeric Yearly_Revenue
+    }
+    Inventory {
+        int Inventory_Id PK
+        int Facility_Id FK
+        varchar Item_Name
+        int Quantity
+        varchar Supplier
+    }
+    Flight {
+        int Flight_Id PK
+        varchar Flight_Number
+        varchar Airline
+        timestamp Departure_Time
+        timestamp Arrival_Time
+        varchar Status
+        varchar Gate
+        varchar Terminal
+    }
+    Staff_Schedule {
+        int Schedule_Id PK
+        int Employee_Id FK
+        int Facility_Id FK
+        date Shift_Date
+        time Shift_Start
+        time Shift_End
+        text Task_Description
+    }
+    Communication {
+        int Message_Id PK
+        int Sender_Id FK
+        int Receiver_Id FK
+        varchar Message_Type
+        text Message
+        timestamp Sent_At
+    }
+    Incident {
+        int Incident_Id PK
+        int Reported_By FK
+        int Facility_Id FK
+        text Description
+        varchar Status
+        timestamp Reported_At
+        timestamp Resolved_At
+    }
+    users {
+        int id PK
+        varchar name
+        varchar contact_number
+        varchar aaddhaar_no
+        varchar role
+        varchar password
+        varchar login_id
+    }
+
+    Employee ||--o{ Facility : "manages"
+    Employee ||--o{ Booking : "handles"
+    Employee ||--o{ Feedback : "manages"
+    Employee ||--o{ Staff_Schedule : "scheduled in"
+    Employee ||--o{ Communication : "sends"
+    Employee ||--o{ Communication : "receives"
+    Employee ||--o{ Incident : "reports"
+    Facility ||--o{ Booking : "has"
+    Facility ||--o{ Feedback : "receives"
+    Facility ||--o{ Revenue : "generates"
+    Facility ||--o{ Inventory : "holds"
+    Facility ||--o{ Staff_Schedule : "hosts"
+    Facility ||--o{ Incident : "site of"
+    Customer ||--o{ Booking : "makes"
+    Customer ||--o{ Feedback : "gives"
+```
 
 ---
 
@@ -17,260 +243,286 @@ A full-stack web application for managing airport facilities, staff, bookings, f
 
 ```
 DBMS_Project/
-├── .env                        # Database credentials (not committed)
-├── backend/                    # Express/TypeScript API server
-│   ├── package.json
-│   ├── tsconfig.json
+├── .env                        # DATABASE_URL (not committed)
+├── backend/
+│   ├── src/
+│   │   ├── db.ts               # pg Pool with SSL → Supabase
+│   │   ├── index.ts            # Express app (port 5000)
+│   │   └── routes/
+│   │       ├── users.ts
+│   │       ├── flights.ts
+│   │       ├── bookings.ts
+│   │       ├── employees.ts
+│   │       ├── facilities.ts
+│   │       ├── incidents.ts
+│   │       ├── feedback.ts
+│   │       ├── staffSchedule.ts
+│   │       └── revenue.ts
+├── frontend/
 │   └── src/
-│       ├── db.ts               # PostgreSQL connection pool
-│       ├── index.ts            # Express app entry point (port 5000)
-│       └── routes/
-│           ├── flights.ts
-│           ├── bookings.ts
-│           ├── employees.ts
-│           ├── facilities.ts
-│           ├── incidents.ts
-│           ├── feedback.ts
-│           ├── staffSchedule.ts
-│           ├── revenue.ts
-│           └── users.ts
-├── frontend/                   # React/TypeScript SPA
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── src/
-│       ├── App.tsx             # Root router
-│       ├── index.tsx           # React entry point
-│       ├── api/index.ts        # Axios instance (baseURL: localhost:5000)
-│       ├── types/index.ts      # Shared TypeScript interfaces
+│       ├── App.tsx
+│       ├── styles/ds.ts        # Shared inline style system + useIsMobile
+│       ├── index.css           # Global utility classes
 │       ├── components/
 │       │   ├── LoginSignUp.tsx
 │       │   ├── AdminHome.tsx
 │       │   ├── ManagerHome.tsx
 │       │   ├── EmployeeHome.tsx
 │       │   ├── CustomerHome.tsx
-│       │   ├── admin_tab/      # 8 admin management tabs
-│       │   └── customer_tab/   # 3 customer-facing tabs
+│       │   ├── admin_tab/      # 8 tabs
+│       │   └── customer_tab/   # 3 tabs
 │       └── pages/
 │           ├── Home.tsx
 │           └── SearchFlights.tsx
 └── database/
-    ├── DDL_schema.sql          # Table definitions
-    ├── Populate_tables.sql     # Sample data
-    ├── users.sql               # Users table
-    ├── Triggers.sql            # DB triggers
-    └── Functional_querries.sql # Complex queries reference
+    ├── DDL_schema.sql
+    ├── Triggers.sql
+    ├── users.sql
+    ├── Populate_tables.sql
+    └── seed_users.sql
 ```
 
 ---
 
-## Database Schema
+## Setup
 
-### Tables
+### Prerequisites
+- Node.js 18+
+- A Supabase project (or local PostgreSQL)
 
-| Table | Primary Key | Description |
+### 1. Environment
+Create `.env` in project root:
+```env
+DATABASE_URL=postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
+PORT=5000
+```
+
+### 2. Database
+Run in Supabase SQL Editor in order:
+```
+database/DDL_schema.sql
+database/Triggers.sql
+database/users.sql
+database/Populate_tables.sql
+database/seed_users.sql
+```
+
+### 3. Backend
+```bash
+cd backend && npm install && npm run dev
+```
+
+### 4. Frontend
+```bash
+cd frontend && npm install && npm start
+```
+
+---
+
+## Test Credentials
+
+| Role | Login ID | Password |
 |---|---|---|
-| `Employee` | `Employee_Id` (SERIAL) | Staff with roles: Manager, Staff, Technician, Cleaner, Security, Authority |
-| `Facility` | `Facility_Id` (SERIAL) | Airport facilities (Gym, Lounge, Restaurant, Shop, Other) linked to a manager |
-| `Customer` | `Aadhaar_No` (VARCHAR) | Customers identified by Aadhaar number |
-| `Booking` | `(Booking_Id, Facility_Id, Aadhaar_No)` | Customer bookings for facilities |
-| `Feedback` | `(Feedback_Id, Facility_Id, Aadhaar_No, Manager_Id)` | Customer ratings (1–5) per facility |
-| `Revenue` | `Revenue_Id` (SERIAL) | Monthly/yearly revenue per facility |
-| `Inventory` | `Inventory_Id` (SERIAL) | Items per facility with quantity and supplier |
-| `Flight` | `Flight_Id` (SERIAL) | Flight details with status tracking |
-| `Staff_Schedule` | `Schedule_Id` (SERIAL) | Employee shift scheduling per facility |
-| `Communication` | `Message_Id` (SERIAL) | Internal employee messaging (Alert, Notice, Message) |
-| `Incident` | `Incident_Id` (SERIAL) | Operational incidents reported by staff |
-| `users` | `id` (SERIAL) | Application login accounts |
+| Admin | `9000000001_admin` | `admin123` |
+| Manager | `9000000002_manager` | `manager123` |
+| Employee | `9000000003_employee` | `employee123` |
+| Customer | `9000000004_customer` | `customer123` |
 
-### Key Relationships
-
-- `Facility.Manager_Id` → `Employee.Employee_Id`
-- `Booking.Facility_Id` → `Facility`, `Booking.Aadhaar_No` → `Customer`, `Booking.Employee_Id` → `Employee`
-- `Feedback.Facility_Id` → `Facility`, `Feedback.Aadhaar_No` → `Customer`, `Feedback.Manager_Id` → `Employee`
-- `Staff_Schedule.(Employee_Id, Facility_Id)` → `Employee`, `Facility`
-- `Incident.(Reported_By, Facility_Id)` → `Employee`, `Facility`
+> **Note:** If on a university/college network, switch to mobile hotspot — port 5432 is commonly blocked on institutional networks.
 
 ---
 
 ## API Endpoints
 
-All mutation endpoints (POST, PUT, DELETE) accept parameters as **URL query strings**.
+Base URL: `http://localhost:5000`. All mutation params passed as URL query strings.
 
-### Flights — `/flights`
+### `/users`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/flights/search` | Search by `flight_number`, `airline`, `departure_date` |
-| POST | `/flights/create` | Create a new flight |
-| PUT | `/flights/update` | Update flight fields dynamically |
-| DELETE | `/flights/:flight_number` | Delete a flight |
+| GET | `/users?loginId=` | Fetch user by login ID |
+| POST | `/users` | Register new user |
 
-### Bookings — `/bookings`
+### `/flights`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/bookings/search` | Search by `booking_id`, `facility_id`, `aadhaar_no`, `payment_status` |
-| GET | `/bookings/summary` | Booking summary with facility JOIN |
-| POST | `/bookings/create` | Create a booking |
-| PUT | `/bookings/update` | Admin update (all fields) |
-| PUT | `/bookings/update_customer` | Customer update (date_time, payment_status only) |
+| GET | `/flights/search` | Search by flight_number, airline, departure_date |
+| POST | `/flights/create` | Create flight |
+| PUT | `/flights/update` | Update flight |
+| DELETE | `/flights/:flight_number` | Delete flight |
+
+### `/bookings`
+| Method | Path | Description |
+|---|---|---|
+| GET | `/bookings/search` | Search by booking_id, facility_id, aadhaar_no, payment_status |
+| GET | `/bookings/summary` | Joined view with facility + customer + employee names |
+| POST | `/bookings/create` | Create booking |
+| PUT | `/bookings/update` | Admin update |
 | PUT | `/bookings/status` | Update payment status only |
-| DELETE | `/bookings/delete` | Admin delete |
-| DELETE | `/bookings/delete_customer` | Customer delete own booking |
+| DELETE | `/bookings/delete` | Delete booking |
 
-### Employees — `/employees`
+### `/employees`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/employees/search` | Search by `employee_id`, `name`, `role`, `shift_timings` |
-| GET | `/employees/multiple-bookings` | Employees handling multiple bookings |
+| GET | `/employees/search` | Search by id, name, role, shift_timings |
+| GET | `/employees/multiple-bookings` | Employees with 2+ bookings last month |
 | POST | `/employees/insert` | Create employee |
 | PUT | `/employees/update` | Update employee |
 | DELETE | `/employees/delete` | Delete employee |
 
-### Facilities — `/facilities`
+### `/facilities`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/facilities/search` | Search by `facility_id`, `name`, `type`, `location`, `manager_id` |
-| GET | `/facilities/top-rated` | Facilities with average rating > 4 |
+| GET | `/facilities/search` | Search by id, name, type, location, manager_id |
+| GET | `/facilities/top-rated` | Facilities with avg rating > 4 |
 | POST | `/facilities/insert` | Create facility |
 | PUT | `/facilities/update` | Update facility |
 | DELETE | `/facilities/delete` | Delete facility |
 
-### Incidents — `/incidents`
+### `/incidents`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/incidents/search` | Search by `incident_id`, `facility_id`, `reported_by`, `status` |
-| POST | `/incidents/insert` | Report a new incident |
-| PUT | `/incidents/update` | Update incident status/details |
+| GET | `/incidents/search` | Search by id, facility_id, reported_by, status |
+| POST | `/incidents/insert` | Report incident |
+| PUT | `/incidents/update` | Update incident |
+| DELETE | `/incidents/delete` | Delete by id |
 | DELETE | `/incidents/resolved` | Delete all resolved incidents |
-| DELETE | `/incidents/delete` | Delete by `incident_id` |
 
-### Feedback — `/feedback`
+### `/feedback`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/feedback/search` | Search by `feedback_id`, `facility_id`, `aadhaar_no`, `manager_id`, `rating` |
+| GET | `/feedback/search` | Search by id, facility_id, aadhaar_no, manager_id, rating |
 | POST | `/feedback/insert` | Submit feedback |
 | PUT | `/feedback/update` | Update feedback |
 | DELETE | `/feedback/delete` | Delete feedback |
 
-### Staff Schedule — `/staff_schedule`
+### `/staff_schedule`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/staff_schedule/search` | Search by `schedule_id`, `employee_id`, `facility_id`, `shift_date` |
-| GET | `/staff/schedules/today` | Today's schedules with employee and communication JOIN |
+| GET | `/staff_schedule/search` | Search by schedule_id, employee_id, facility_id, shift_date |
+| GET | `/staff_schedule/schedules/today` | Today's schedules with employee + communication join |
 | POST | `/staff_schedule/insert` | Create schedule |
 | PUT | `/staff_schedule/update` | Update schedule |
 | DELETE | `/staff_schedule/delete` | Delete schedule |
 
-### Revenue — `/revenue`
+### `/revenue`
 | Method | Path | Description |
 |---|---|---|
-| GET | `/revenue/yearly/:year` | Revenue records for a given year |
-| GET | `/revenue/average/:year` | Average revenue per facility for a given year |
-| GET | `/revenue/calculate_avg` | Dynamic aggregation (SUM or AVG) with optional `facility_id`, `start_date`, `end_date`, `aggregation`, `revenue_type` filters |
-
-### Users — `/users`
-| Method | Path | Description |
-|---|---|---|
-| GET | `/users?loginId=` | Look up user by login ID (returns array) |
-| POST | `/users` | Register a new user (JSON body) |
+| GET | `/revenue/yearly/:year` | Total revenue per facility for year |
+| GET | `/revenue/average/:year` | Avg monthly revenue per facility for year |
+| GET | `/revenue/calculate_avg` | Dynamic aggregation with filters |
 
 ---
 
 ## Role-Based Access
 
-Login redirects based on the `loginId` string:
-
-| loginId contains | Role | Dashboard |
+| Role | Dashboard | Capabilities |
 |---|---|---|
-| `admin` | Administrator | Full CRUD on all 8 entities |
-| `manager` | Facility Manager | View/edit facilities, employees, bookings, feedback, schedules, revenue |
-| `employee` | Staff | View own profile, assigned facility, bookings |
-| `customer` | Customer | Browse facilities, manage own bookings, view profile |
+| Admin | `/AdminHome` | Full CRUD on all 8 entities |
+| Manager | `/ManagerHome` | View + limited edit on facilities, employees, bookings, feedback, revenue, schedules |
+| Employee | `/EmployeeHome` | Edit own profile; read-only access to facilities and bookings |
+| Customer | `/CustomerHome` | Browse facilities; full CRUD on own bookings; edit own profile |
 
-User accounts are stored in the `users` table. The `role` field and `loginId` are set at signup.
+Authentication is client-side only (localStorage). Login ID contains the role string for routing.
 
 ---
 
-## Setup & Running
+## User Flow
 
-### Prerequisites
+```mermaid
+flowchart TD
+    Start([User opens app]) --> Login
 
-- Node.js 18+
-- PostgreSQL 14+
-- npm
+    subgraph Auth["Authentication — /LoginSignup"]
+        Login[Login Tab]
+        Signup[Sign Up Tab]
+        Login -->|Enter loginId + password| Verify["GET /users?loginId=..."]
+        Verify -->|Password mismatch| Err[Invalid credentials alert]
+        Err --> Login
+        Signup -->|Fill name · contact · aadhaar · role · password| Register[POST /users]
+        Register --> Generated["loginId = contact_role"]
+        Generated --> Login
+    end
 
-### 1. Database Setup
+    Verify -->|admin in loginId| Admin
+    Verify -->|manager in loginId| Manager
+    Verify -->|employee in loginId| Employee
+    Verify -->|customer in loginId| Customer
 
-```sql
--- Create the database
-CREATE DATABASE ams;
+    subgraph Admin["/AdminHome"]
+        A1[Flights] & A2[Facility] & A3[Bookings] & A4[Incidents]
+        A5[Feedback] & A6[Revenue] & A7[Employee] & A8[Staff Schedule]
+    end
 
--- Connect to it, then run in order:
-\i database/DDL_schema.sql
-\i database/users.sql
-\i database/Triggers.sql
-\i database/Populate_tables.sql
-```
+    subgraph Manager["/ManagerHome"]
+        M1[Facility] & M2[Employees] & M3[Bookings]
+        M4[Feedback] & M5[Revenue] & M6[Inventory] & M7[Staff Schedule]
+    end
 
-### 2. Environment Variables
+    subgraph Employee["/EmployeeHome"]
+        E1[Profile] & E2[Facility] & E3[Bookings]
+    end
 
-Create `.env` in the project root (already present):
+    subgraph Customer["/CustomerHome"]
+        C1[Facilities] & C2[Bookings] & C3[Profile]
+    end
 
-```env
-DB_HOST="localhost"
-DB_PORT=5432
-DB_NAME="ams"
-DB_USER="postgres"
-DB_PASS="your_password"
-```
-
-### 3. Backend
-
-```bash
-cd backend
-npm install
-npm run dev       # starts ts-node-dev on port 5000
-```
-
-For production:
-```bash
-npm run build     # compiles to dist/
-npm start         # runs compiled JS
-```
-
-### 4. Frontend
-
-```bash
-cd frontend
-npm install
-npm start         # starts React dev server on port 3000
+    Admin --> Logout([Logout])
+    Manager --> Logout
+    Employee --> Logout
+    Customer --> Logout
+    Logout --> Login
 ```
 
 ---
 
-## Frontend Routes
+## System Architecture
 
-| Path | Component | Access |
-|---|---|---|
-| `/` | `LoginSignUp` | Public |
-| `/LoginSignup` | `LoginSignUp` | Public |
-| `/home` | `Home` | Public |
-| `/flights/search` | `SearchFlights` | Public |
-| `/AdminHome` | `AdminHome` | Admin |
-| `/ManagerHome` | `ManagerHome` | Manager |
-| `/EmployeeHome` | `EmployeeHome` | Employee |
-| `/CustomerHome` | `CustomerHome` | Customer |
+```mermaid
+graph TB
+    subgraph Browser["Browser — localhost:3000"]
+        direction TB
+        UI["React 19 + TypeScript\nReact Router v7"]
+        Pages["LoginSignUp · AdminHome · ManagerHome\nEmployeeHome · CustomerHome"]
+        LS["localStorage: currentUser"]
+        UI --> Pages
+        Pages -.->|store on login| LS
+    end
 
----
+    subgraph API["Express Backend — localhost:5000"]
+        direction TB
+        MW["CORS · express.json()"]
+        subgraph Routes["9 Route Groups"]
+            direction LR
+            RT1["/users"] & RT2["/flights"] & RT3["/bookings"]
+            RT4["/employees"] & RT5["/facilities"] & RT6["/incidents"]
+            RT7["/feedback"] & RT8["/staff_schedule"] & RT9["/revenue"]
+        end
+        Pool["node-postgres Pool · SSL"]
+        MW --> Routes --> Pool
+    end
 
-## Authentication
+    subgraph Supabase["Supabase PostgreSQL — Singapore"]
+        direction TB
+        subgraph CoreTables["Core"]
+            T1["Employee"] & T2["Facility"] & T3["Customer"]
+        end
+        subgraph OpsTables["Operations"]
+            T4["Booking"] & T5["Feedback"] & T6["Incident"]
+            T7["Staff_Schedule"] & T8["Communication"]
+        end
+        subgraph DataTables["Data"]
+            T9["Flight"] & T10["Revenue"] & T11["Inventory"]
+        end
+        AuthT["users"]
+        Trigger["Trigger: check_manager_role"]
+        T2 -->|Manager_Id FK| T1
+        T4 -->|FK| T2 & T3 & T1
+        T5 -->|FK| T2 & T3
+        T6 & T7 -->|FK| T1 & T2
+        T10 & T11 -->|FK| T2
+        Trigger -.->|BEFORE INSERT/UPDATE| T2
+    end
 
-Authentication is handled client-side. After a successful login, the user object is stored in `localStorage` under the key `currentUser`. Role-based routing reads the `loginId` field to determine which dashboard to navigate to. There is no JWT or session-based auth — this is a DBMS course project.
-
----
-
-## Notes
-
-- The backend uses parameterized queries (`$1, $2, ...`) via `node-postgres` to prevent SQL injection.
-- Dynamic updates use `WHERE 1=1 AND ...` clause building so only provided fields are updated.
-- The `staff_schedule` router is mounted on both `/staff_schedule` and `/staff` to support the `/staff/schedules/today` endpoint.
-- The `database/wrong_queries.sql` file contains query drafts kept for reference only.
+    Browser -->|"HTTP fetch() — GET/POST/PUT/DELETE"| API
+    API -->|"SSL :5432"| Supabase
+```

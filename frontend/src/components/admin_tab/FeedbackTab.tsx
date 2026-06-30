@@ -6,7 +6,7 @@ import { Feedback } from "../../types";
 const API = "http://localhost:5000";
 
 const FeedbackTab: React.FC = () => {
-  const [searchParams, setSearchParams] = useState({ feedback_id: "", facility_id: "", aadhaar_no: "", manager_id: "", rating: "" });
+  const [searchParams, setSearchParams] = useState({ feedback_id: "", facility_id: "", customer_id: "", manager_id: "", rating: "" });
   const [searchResults, setSearchResults] = useState<Feedback[]>([]);
   const [data, setData] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,12 +53,12 @@ const FeedbackTab: React.FC = () => {
   const renderTable = (feedbacks: Feedback[]) => (
     <div className="table-responsive">
       <table>
-        <thead><tr><th>Select</th><th>ID</th><th>Facility ID</th><th>Aadhaar No</th><th>Manager ID</th><th>Date Time</th><th>Rating</th><th>Comments</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Select</th><th>ID</th><th>Facility ID</th><th>Customer ID</th><th>Manager ID</th><th>Date Time</th><th>Rating</th><th>Comments</th><th>Actions</th></tr></thead>
         <tbody>
           {feedbacks.map((fb, i) => (
             <tr key={i} className={currentFeedback?.feedback_id === fb.feedback_id ? "selected-row" : ""} onClick={() => setCurrentFeedback(fb)}>
               <td><input type="radio" name="selectedFeedback" checked={currentFeedback?.feedback_id === fb.feedback_id} onChange={() => setCurrentFeedback(fb)} /></td>
-              <td>{fb.feedback_id}</td><td>{fb.facility_id}</td><td>{fb.aadhaar_no}</td><td>{fb.manager_id}</td>
+              <td>{fb.feedback_id}</td><td>{fb.facility_id}</td><td>{fb.customer_id}</td><td>{fb.manager_id}</td>
               <td>{new Date(fb.date_time).toLocaleString()}</td><td>{fb.rating}</td>
               <td className="comments-cell">{fb.comments}</td>
               <td className="actions-cell">
@@ -78,7 +78,7 @@ const FeedbackTab: React.FC = () => {
         <h3>FEEDBACK MANAGEMENT</h3>
         <div className="action-buttons">
           <button onClick={() => { if (currentFeedback) { setEditMode(true); setFormData({ ...currentFeedback, date_time: currentFeedback.date_time?.slice(0,16) }); } }} className="btn-update" disabled={!currentFeedback}><FaEdit /> Update Selected</button>
-          <button onClick={() => { setEditMode(true); setCurrentFeedback(null); setFormData({ facility_id: "", aadhaar_no: "", manager_id: "", rating: 3, comments: "", date_time: new Date().toISOString().slice(0,16) }); }} className="btn-primary"><FaPlus /> Add Feedback</button>
+          <button onClick={() => { setEditMode(true); setCurrentFeedback(null); setFormData({ facility_id: "", customer_id: "", manager_id: "", rating: 3, comments: "", date_time: new Date().toISOString().slice(0,16) }); }} className="btn-primary"><FaPlus /> Add Feedback</button>
         </div>
       </div>
 
@@ -87,7 +87,7 @@ const FeedbackTab: React.FC = () => {
         <form onSubmit={handleSearch} className="search-form">
           <div className="form-group"><label>Feedback ID:</label><input type="text" value={searchParams.feedback_id} onChange={(e) => setSearchParams({ ...searchParams, feedback_id: e.target.value })} /></div>
           <div className="form-group"><label>Facility ID:</label><input type="text" value={searchParams.facility_id} onChange={(e) => setSearchParams({ ...searchParams, facility_id: e.target.value })} /></div>
-          <div className="form-group"><label>Aadhaar No:</label><input type="text" value={searchParams.aadhaar_no} onChange={(e) => setSearchParams({ ...searchParams, aadhaar_no: e.target.value })} /></div>
+          <div className="form-group"><label>Customer ID:</label><input type="text" value={searchParams.customer_id} onChange={(e) => setSearchParams({ ...searchParams, customer_id: e.target.value })} /></div>
           <div className="form-group"><label>Manager ID:</label><input type="text" value={searchParams.manager_id} onChange={(e) => setSearchParams({ ...searchParams, manager_id: e.target.value })} /></div>
           <div className="form-group">
             <label>Rating:</label>
@@ -117,7 +117,7 @@ const FeedbackTab: React.FC = () => {
             <form onSubmit={handleSubmit}>
               {currentFeedback && <div className="form-group"><label>Feedback ID</label><input type="text" value={formData.feedback_id} disabled /></div>}
               <div className="form-group"><label>Facility ID</label><input type="text" value={formData.facility_id} onChange={(e) => setFormData({ ...formData, facility_id: e.target.value })} required /></div>
-              <div className="form-group"><label>Aadhaar No</label><input type="text" value={formData.aadhaar_no} onChange={(e) => setFormData({ ...formData, aadhaar_no: e.target.value })} required /></div>
+              <div className="form-group"><label>Customer ID</label><input type="text" value={formData.customer_id} onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })} required /></div>
               <div className="form-group"><label>Manager ID</label><input type="text" value={formData.manager_id} onChange={(e) => setFormData({ ...formData, manager_id: e.target.value })} required /></div>
               <div className="form-group">
                 <label>Rating</label>

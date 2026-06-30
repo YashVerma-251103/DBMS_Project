@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DASHBOARD_PATH } from "../types";
 
 const page: React.CSSProperties = {
   minHeight: '100vh',
@@ -92,7 +93,7 @@ const LoginSignUp: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [loginData, setLoginData] = useState({ loginId: "", password: "" });
   const [signupData, setSignupData] = useState({
-    name: "", contactNumber: "", aaddhaar_no: "", role: "", password: "", confirmPassword: "",
+    name: "", contactNumber: "", age: "", sex: "", nationality: "", password: "", confirmPassword: "",
   });
   const [generatedLoginId, setGeneratedLoginId] = useState("");
   const navigate = useNavigate();
@@ -106,12 +107,20 @@ const LoginSignUp: React.FC = () => {
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== signupData.confirmPassword) { alert("Passwords don't match!"); return; }
-    const loginId = `${signupData.contactNumber}_${signupData.role}`;
+    const loginId = `${signupData.contactNumber}_customer`;
     try {
       const response = await fetch("http://localhost:5000/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: signupData.name, contactNumber: signupData.contactNumber, aaddhaar_no: signupData.aaddhaar_no, role: signupData.role, password: signupData.password, loginId }),
+        body: JSON.stringify({
+          name: signupData.name,
+          contactNumber: signupData.contactNumber,
+          age: Number(signupData.age),
+          sex: signupData.sex,
+          nationality: signupData.nationality,
+          password: signupData.password,
+          loginId,
+        }),
       });
       if (!response.ok) { const err = await response.json(); alert(`Registration failed: ${err.error}`); return; }
       setGeneratedLoginId(loginId);
@@ -126,11 +135,8 @@ const LoginSignUp: React.FC = () => {
       const users = await response.json();
       if (users.length > 0 && users[0].password === loginData.password) {
         localStorage.setItem("currentUser", JSON.stringify(users[0]));
-        const id = loginData.loginId.toLowerCase();
-        if (id.includes("admin"))    navigate("/AdminHome");
-        else if (id.includes("manager"))  navigate("/ManagerHome");
-        else if (id.includes("employee")) navigate("/EmployeeHome");
-        else if (id.includes("customer")) navigate("/CustomerHome");
+        const path = DASHBOARD_PATH[users[0].role];
+        if (path) navigate(path);
         else alert("Logged in, but role not recognized for redirection.");
       } else {
         alert("Invalid credentials!");
@@ -176,18 +182,21 @@ const LoginSignUp: React.FC = () => {
                 <input className="auth-input" id="contactNumber" name="contactNumber" type="tel" value={signupData.contactNumber} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="aaddhaar_no">Aadhaar Number</label>
-                <input className="auth-input" id="aaddhaar_no" name="aaddhaar_no" type="text" value={signupData.aaddhaar_no} onChange={handleSignupChange} required />
+                <label style={label} htmlFor="age">Age</label>
+                <input className="auth-input" id="age" name="age" type="number" min={0} value={signupData.age} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="role">Role</label>
-                <select className="auth-select" id="role" name="role" value={signupData.role} onChange={handleSignupChange} required>
-                  <option value="" disabled>Select Role</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="employee">Employee</option>
-                  <option value="customer">Customer</option>
+                <label style={label} htmlFor="sex">Sex</label>
+                <select className="auth-select" id="sex" name="sex" value={signupData.sex} onChange={handleSignupChange} required>
+                  <option value="" disabled>Select Sex</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
+              </div>
+              <div style={fgRow}>
+                <label style={label} htmlFor="nationality">Nationality</label>
+                <input className="auth-input" id="nationality" name="nationality" type="text" value={signupData.nationality} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
                 <label style={label} htmlFor="password">Create Password</label>

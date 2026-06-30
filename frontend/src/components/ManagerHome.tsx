@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaEdit, FaSignOutAlt } from 'react-icons/fa';
 import { MdPeople, MdBusiness, MdEvent, MdFeedback, MdAttachMoney, MdInventory, MdSchedule } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
+import { EMPLOYEE_ROLES, DEPARTMENTS } from '../types';
 
 interface FieldDef { name: string; type: string; editable: boolean; options?: string[]; }
 interface SchemaDef { fields: FieldDef[]; endpoint: string; }
@@ -19,10 +20,11 @@ const entityLabels: Record<string, string> = {
 
 const entitySchemas: Record<string, SchemaDef> = {
   facility:       { fields: [{ name: 'Facility_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Type', type: 'select', options: ['Gym','Lounge','Restaurant','Shop','Other'], editable: true }, { name: 'Location', type: 'text', editable: true }, { name: 'Contact_No', type: 'tel', editable: true }, { name: 'Opening_Hours', type: 'text', editable: true }, { name: 'Manager_Id', type: 'number', editable: false }], endpoint: 'facilities/search' },
-  employees:      { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'select', options: ['Staff','Technician','Cleaner','Security'], editable: true }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
-  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
-  feedback:       { fields: [{ name: 'Feedback_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Rating', type: 'number', editable: false }, { name: 'Comments', type: 'text', editable: false }], endpoint: 'feedback/search' },
+  employees:      { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'select', options: EMPLOYEE_ROLES, editable: true }, { name: 'Department', type: 'select', options: DEPARTMENTS, editable: true }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
+  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
+  feedback:       { fields: [{ name: 'Feedback_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Rating', type: 'number', editable: false }, { name: 'Comments', type: 'text', editable: false }], endpoint: 'feedback/search' },
   revenue:        { fields: [{ name: 'Financial_Year', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Avg_Revenue', type: 'number', editable: false }], endpoint: 'revenue/calculate_avg' },
+  inventory:      { fields: [{ name: 'Inventory_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Item_Name', type: 'text', editable: true }, { name: 'Quantity', type: 'number', editable: true }, { name: 'Price', type: 'number', editable: true }, { name: 'Supplier', type: 'text', editable: true }], endpoint: 'inventory/search' },
   staff_schedule: { fields: [{ name: 'Schedule_Id', type: 'number', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Shift_Date', type: 'date', editable: true }, { name: 'Shift_Start', type: 'time', editable: true }, { name: 'Shift_End', type: 'time', editable: true }, { name: 'Task_Description', type: 'text', editable: true }], endpoint: 'staff_schedule/search' },
 };
 
@@ -177,7 +179,7 @@ const ManagerHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={() => navigate('/login', { replace: true })}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

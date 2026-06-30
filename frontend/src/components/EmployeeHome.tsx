@@ -13,9 +13,9 @@ const entityLabels: Record<string, string> = {
 };
 
 const entitySchemas: Record<string, { fields: { name: string; type: string; editable: boolean }[]; endpoint: string }> = {
-  profile:  { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'text', editable: false }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
+  profile:  { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'text', editable: false }, { name: 'Department', type: 'text', editable: false }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
   facility: { fields: [{ name: 'Facility_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: false }, { name: 'Type', type: 'text', editable: false }, { name: 'Location', type: 'text', editable: false }, { name: 'Contact_No', type: 'tel', editable: false }, { name: 'Opening_Hours', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }], endpoint: 'facilities/search' },
-  bookings: { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Payment_Status', type: 'text', editable: false }], endpoint: 'bookings/search' },
+  bookings: { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Payment_Status', type: 'text', editable: false }], endpoint: 'bookings/search' },
 };
 
 const EmployeeHome: React.FC = () => {
@@ -178,7 +178,7 @@ const EmployeeHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={() => navigate('/login', { replace: true })}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

@@ -22,7 +22,7 @@ const BookingsTab: React.FC = () => {
     setLoading(true);
     try {
       const url = currentUser?.role === "customer"
-        ? `${API}/bookings/search?aadhaar_no=${currentUser.aadhaar_no}`
+        ? `${API}/bookings/search?customer_id=${currentUser.customerId}`
         : `${API}/bookings/search`;
       const res = await fetch(url);
       setData(await res.json());
@@ -41,14 +41,14 @@ const BookingsTab: React.FC = () => {
 
   const handleCreate = () => {
     setEditMode(true); setCurrentBooking(null);
-    setFormData({ facility_id: "", aadhaar_no: currentUser?.role === "customer" ? currentUser.aadhaar_no : "", employee_id: "", date_time: "", payment_status: "Pending" });
+    setFormData({ facility_id: "", customer_id: currentUser?.role === "customer" ? currentUser.customerId : "", employee_id: "", date_time: "", payment_status: "Pending" });
   };
 
   const handleEdit = (booking: Booking) => { setEditMode(true); setCurrentBooking(booking); setFormData({ ...booking }); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const baseURL = currentBooking ? `${API}/bookings/update_customer` : `${API}/bookings/create`;
+    const baseURL = currentBooking ? `${API}/bookings/update` : `${API}/bookings/create`;
     const method = currentBooking ? "PUT" : "POST";
     const params = new URLSearchParams(formData).toString();
     try {
@@ -66,7 +66,7 @@ const BookingsTab: React.FC = () => {
   const handleDelete = async (booking: Booking) => {
     if (!window.confirm("Are you sure you want to delete this booking?")) return;
     try {
-      await fetch(`${API}/bookings/delete_customer?booking_id=${booking.booking_id}`, { method: "DELETE" });
+      await fetch(`${API}/bookings/delete?booking_id=${booking.booking_id}`, { method: "DELETE" });
       fetchData();
     } catch (err) { console.error(err); }
   };
@@ -74,16 +74,16 @@ const BookingsTab: React.FC = () => {
   const renderTable = (bookings: Booking[]) => (
     <div className="table-responsive">
       <table>
-        <thead><tr><th>Select</th><th>Booking ID</th><th>Facility ID</th><th>Aadhar No</th><th>Employee ID</th><th>Date Time</th><th>Payment Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Select</th><th>Booking ID</th><th>Facility ID</th><th>Customer ID</th><th>Employee ID</th><th>Date Time</th><th>Payment Status</th><th>Actions</th></tr></thead>
         <tbody>
           {bookings.map((booking, i) => (
             <tr key={i} className={currentBooking?.booking_id === booking.booking_id ? "selected-row" : ""} onClick={() => setCurrentBooking(booking)}>
               <td><input type="radio" name="selectedBooking" checked={currentBooking?.booking_id === booking.booking_id} onChange={() => setCurrentBooking(booking)} /></td>
-              <td>{booking.booking_id}</td><td>{booking.facility_id}</td><td>{booking.aadhaar_no}</td>
+              <td>{booking.booking_id}</td><td>{booking.facility_id}</td><td>{booking.customer_id}</td>
               <td>{booking.employee_id}</td><td>{new Date(booking.date_time).toLocaleString()}</td>
               <td>{booking.payment_status}</td>
               <td className="actions-cell">
-                {(currentUser?.role !== "customer" || booking.aadhaar_no === currentUser.aadhaar_no) && (
+                {(currentUser?.role !== "customer" || booking.customer_id === currentUser.customerId) && (
                   <>
                     <button onClick={(e) => { e.stopPropagation(); handleEdit(booking); }} className="btn-edit"><FaEdit /></button>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(booking); }} className="btn-delete"><FaTrash /></button>
@@ -140,7 +140,6 @@ const BookingsTab: React.FC = () => {
             <form onSubmit={handleSubmit}>
               {currentBooking && <div className="form-group"><label>Booking ID</label><input type="text" value={formData.booking_id} disabled /></div>}
               <div className="form-group"><label>Facility ID</label><input type="text" value={formData.facility_id} onChange={(e) => setFormData({ ...formData, facility_id: e.target.value })} /></div>
-              <div className="form-group"><label>Aadhar No</label><input type="text" value={formData.aadhaar_no} onChange={(e) => setFormData({ ...formData, aadhaar_no: e.target.value })} /></div>
               <div className="form-group"><label>Employee ID</label><input type="text" value={formData.employee_id} onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })} disabled={currentUser?.role === "customer"} /></div>
               <div className="form-group"><label>Date Time</label><input type="datetime-local" value={formData.date_time} onChange={(e) => setFormData({ ...formData, date_time: e.target.value })} /></div>
               <div className="form-group">

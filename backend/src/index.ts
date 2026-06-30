@@ -12,6 +12,8 @@ import revenueRoutes from './routes/revenue';
 import staffScheduleRoutes from './routes/staffSchedule';
 import userRoutes from './routes/users';
 import feedbackRoutes from './routes/feedback';
+import customerRoutes from './routes/customers';
+import inventoryRoutes from './routes/inventory';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -31,6 +33,8 @@ app.use('/staff_schedule', staffScheduleRoutes);
 app.use('/staff', staffScheduleRoutes);
 app.use('/users', userRoutes);
 app.use('/feedback', feedbackRoutes);
+app.use('/customers', customerRoutes);
+app.use('/inventory', inventoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

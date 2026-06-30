@@ -14,7 +14,7 @@ SELECT
     e.Name AS Employee_Name
 FROM Booking b
 JOIN Facility f ON b.Facility_Id = f.Facility_Id
-JOIN Customer c ON b.Aadhaar_No = c.Aadhaar_No
+JOIN Customer c ON b.Customer_Id = c.Customer_Id
 JOIN Employee e ON b.Employee_Id = e.Employee_Id;
 
 
@@ -46,8 +46,8 @@ WHERE f.Facility_Id IN (
 -- Insertion Queries
 
 -- -- Insert a new booking record.
--- INSERT INTO Booking (Facility_Id, Aadhaar_No, Employee_Id, Date_Time, Payment_Status)
--- VALUES (1, '111122223333', 2, '2025-03-19 12:00:00', 'Pending');
+-- INSERT INTO Booking (Facility_Id, Customer_Id, Employee_Id, Date_Time, Payment_Status)
+-- VALUES (1, 1, 2, '2025-03-19 12:00:00', 'Pending');
 
 -- -- Insert a new flight record.
 -- INSERT INTO Flight (Flight_Number, Airline, Departure_Time, Arrival_Time, Status, Gate, Terminal)
@@ -58,7 +58,7 @@ WHERE f.Facility_Id IN (
 -- -- Update the payment status of a booking.
 -- UPDATE Booking
 -- SET Payment_Status = 'Completed'
--- WHERE Booking_Id = 10 AND Facility_Id = 2 AND Aadhaar_No = '123456789012';
+-- WHERE Booking_Id = 10;
 
 -- -- Update flight status for a specific flight.
 -- UPDATE Flight

@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/search', async (req: Request, res: Response) => {
   try {
-    const { feedback_id, facility_id, aadhaar_no, manager_id, rating } =
+    const { feedback_id, facility_id, customer_id, manager_id, rating } =
       req.query as Record<string, string>;
 
     let query = 'SELECT * FROM feedback WHERE 1=1';
@@ -13,7 +13,7 @@ router.get('/search', async (req: Request, res: Response) => {
 
     if (feedback_id) { values.push(feedback_id); query += ` AND feedback_id = $${values.length}`; }
     if (facility_id) { values.push(facility_id); query += ` AND facility_id = $${values.length}`; }
-    if (aadhaar_no) { values.push(aadhaar_no); query += ` AND aadhaar_no = $${values.length}`; }
+    if (customer_id) { values.push(customer_id); query += ` AND customer_id = $${values.length}`; }
     if (manager_id) { values.push(manager_id); query += ` AND manager_id = $${values.length}`; }
     if (rating) { values.push(rating); query += ` AND rating = $${values.length}`; }
 
@@ -26,18 +26,18 @@ router.get('/search', async (req: Request, res: Response) => {
 
 router.post('/insert', async (req: Request, res: Response) => {
   try {
-    const { facility_id, aadhaar_no, manager_id, rating, comments, date_time } =
+    const { facility_id, customer_id, manager_id, rating, comments, date_time } =
       req.query as Record<string, string>;
 
-    if (!facility_id || !aadhaar_no || !manager_id || !rating) {
-      res.status(400).json({ error: 'facility_id, aadhaar_no, manager_id, and rating are required' });
+    if (!facility_id || !customer_id || !manager_id || !rating) {
+      res.status(400).json({ error: 'facility_id, customer_id, manager_id, and rating are required' });
       return;
     }
 
     await pool.query(
-      `INSERT INTO feedback (facility_id, aadhaar_no, manager_id, rating, comments, date_time)
+      `INSERT INTO feedback (facility_id, customer_id, manager_id, rating, comments, date_time)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [facility_id, aadhaar_no, manager_id, rating, comments || null, date_time || new Date().toISOString()]
+      [facility_id, customer_id, manager_id, rating, comments || null, date_time || new Date().toISOString()]
     );
     res.json({ status: 'success', message: 'Feedback created successfully' });
   } catch (err) {
@@ -47,7 +47,7 @@ router.post('/insert', async (req: Request, res: Response) => {
 
 router.put('/update', async (req: Request, res: Response) => {
   try {
-    const { feedback_id, facility_id, aadhaar_no, manager_id, rating, comments, date_time } =
+    const { feedback_id, facility_id, customer_id, manager_id, rating, comments, date_time } =
       req.query as Record<string, string>;
 
     if (!feedback_id) {
@@ -59,7 +59,7 @@ router.put('/update', async (req: Request, res: Response) => {
     const values: (string | null)[] = [];
 
     if (facility_id !== undefined) { values.push(facility_id); setClauses.push(`facility_id = $${values.length}`); }
-    if (aadhaar_no !== undefined) { values.push(aadhaar_no); setClauses.push(`aadhaar_no = $${values.length}`); }
+    if (customer_id !== undefined) { values.push(customer_id); setClauses.push(`customer_id = $${values.length}`); }
     if (manager_id !== undefined) { values.push(manager_id); setClauses.push(`manager_id = $${values.length}`); }
     if (rating !== undefined) { values.push(rating); setClauses.push(`rating = $${values.length}`); }
     if (comments !== undefined) { values.push(comments || null); setClauses.push(`comments = $${values.length}`); }

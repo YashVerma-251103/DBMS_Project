@@ -79,7 +79,7 @@ const AdminHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={() => navigate('/login', { replace: true })}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

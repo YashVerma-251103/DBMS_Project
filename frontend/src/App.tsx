@@ -7,6 +7,7 @@ import AdminHome from "./components/AdminHome";
 import ManagerHome from "./components/ManagerHome";
 import EmployeeHome from "./components/EmployeeHome";
 import CustomerHome from "./components/CustomerHome";
+import RequireAuth from "./components/RequireAuth";
 
 function App() {
   return (
@@ -17,10 +18,11 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/flights/search" element={<SearchFlights />} />
           <Route path="/LoginSignup" element={<LoginSignUp />} />
-          <Route path="/AdminHome" element={<AdminHome />} />
-          <Route path="/ManagerHome" element={<ManagerHome />} />
-          <Route path="/EmployeeHome" element={<EmployeeHome />} />
-          <Route path="/CustomerHome" element={<CustomerHome />} />
+          <Route path="/login" element={<LoginSignUp />} />
+          <Route path="/AdminHome" element={<RequireAuth role="admin"><AdminHome /></RequireAuth>} />
+          <Route path="/ManagerHome" element={<RequireAuth role="manager"><ManagerHome /></RequireAuth>} />
+          <Route path="/EmployeeHome" element={<RequireAuth role="employee"><EmployeeHome /></RequireAuth>} />
+          <Route path="/CustomerHome" element={<RequireAuth role="customer"><CustomerHome /></RequireAuth>} />
         </Routes>
       </div>
     </Router>

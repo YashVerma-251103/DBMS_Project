@@ -8,7 +8,8 @@ interface RequireAuthProps {
 }
 
 const RequireAuth: React.FC<RequireAuthProps> = ({ role, children }) => {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  let currentUser: { role?: string } | null = null;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { currentUser = null; }
 
   if (!currentUser) return <Navigate to="/login" replace />;
   if (currentUser.role !== role) return <Navigate to={DASHBOARD_PATH[currentUser.role] || '/login'} replace />;

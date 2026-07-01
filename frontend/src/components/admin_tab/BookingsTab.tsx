@@ -60,7 +60,8 @@ const BookingsTab: React.FC = () => {
     const isUpdate = !!currentBooking;
     const url = isUpdate ? `${API}/bookings/update` : `${API}/bookings/create`;
     const method = isUpdate ? "PUT" : "POST";
-    const params = new URLSearchParams(formData).toString();
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const params = new URLSearchParams(cleaned as Record<string, string>).toString();
 
     try {
       const res = await fetch(`${url}?${params}`, { method });

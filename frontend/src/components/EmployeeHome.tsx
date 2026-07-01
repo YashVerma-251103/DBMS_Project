@@ -30,6 +30,7 @@ const EmployeeHome: React.FC = () => {
   const [logoutHov, setLogoutHov] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
   useEffect(() => { fetchData(); }, [activeTab]);
 
@@ -38,7 +39,10 @@ const EmployeeHome: React.FC = () => {
     try {
       const schema = entitySchemas[activeTab];
       if (schema?.endpoint) {
-        const res = await fetch(`http://localhost:5000/${schema.endpoint}`);
+        const url = activeTab === 'profile'
+          ? `http://localhost:5000/${schema.endpoint}?employee_id=${currentUser?.employeeId}`
+          : `http://localhost:5000/${schema.endpoint}`;
+        const res = await fetch(url);
         const result = await res.json();
         setData(Array.isArray(result) ? result : [result]);
       }
@@ -107,12 +111,15 @@ const EmployeeHome: React.FC = () => {
         <div className="form-content">
           <h2>Edit Profile</h2>
           <form onSubmit={handleSubmit}>
-            {schema.fields.filter(f => f.editable).map(field => (
-              <div key={field.name} className="form-group">
-                <label>{field.name.replace(/_/g, ' ')}</label>
-                <input type={field.type} name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} />
-              </div>
-            ))}
+            {schema.fields.filter(f => f.editable).map(field => {
+              const key = field.name.toLowerCase();
+              return (
+                <div key={field.name} className="form-group">
+                  <label>{field.name.replace(/_/g, ' ')}</label>
+                  <input type={field.type} name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} />
+                </div>
+              );
+            })}
             <div className="form-actions">
               <button type="submit" className="btn-primary">Save</button>
               <button type="button" onClick={() => setEditMode(false)} className="btn-secondary">Cancel</button>

@@ -5,7 +5,6 @@ export interface User {
   customerId?: number | null;
   employeeId?: number | null;
   role: string;
-  password: string;
   loginId: string;
 }
 
@@ -19,6 +18,7 @@ export interface Customer {
 }
 
 export interface Flight {
+  flight_id: number;
   flight_number: string;
   airline: string;
   origin?: string;
@@ -58,7 +58,7 @@ export const DASHBOARD_PATH: Record<string, string> = {
   admin: '/AdminHome',
   manager: '/ManagerHome',
   employee: '/EmployeeHome',
-  customer: '/CustomerHome',
+  customer: '/',
 };
 
 export interface Employee {
@@ -111,6 +111,18 @@ export interface StaffSchedule {
   shift_end: string;
   task_description: string;
   created_at: string;
+}
+
+export interface Inventory {
+  inventory_id: number;
+  facility_id: number;
+  item_name: string;
+  quantity?: number;
+  price?: number;
+  supplier?: string;
+  facility_name?: string;
+  facility_location?: string;
+  facility_contact?: string;
 }
 
 export interface Revenue {

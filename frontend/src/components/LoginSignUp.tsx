@@ -131,16 +131,17 @@ const LoginSignUp: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/users?loginId=${loginData.loginId}`);
-      const users = await response.json();
-      if (users.length > 0 && users[0].password === loginData.password) {
-        localStorage.setItem("currentUser", JSON.stringify(users[0]));
-        const path = DASHBOARD_PATH[users[0].role];
-        if (path) navigate(path);
-        else alert("Logged in, but role not recognized for redirection.");
-      } else {
-        alert("Invalid credentials!");
-      }
+      const response = await fetch("http://localhost:5000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId: loginData.loginId, password: loginData.password }),
+      });
+      if (!response.ok) { alert("Invalid credentials!"); return; }
+      const user = await response.json();
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      const path = DASHBOARD_PATH[user.role];
+      if (path) navigate(path);
+      else alert("Logged in, but role not recognized for redirection.");
     } catch (error) { console.error("Login failed:", error); }
   };
 

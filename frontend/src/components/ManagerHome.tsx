@@ -21,11 +21,11 @@ const entityLabels: Record<string, string> = {
 const entitySchemas: Record<string, SchemaDef> = {
   facility:       { fields: [{ name: 'Facility_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Type', type: 'select', options: ['Gym','Lounge','Restaurant','Shop','Other'], editable: true }, { name: 'Location', type: 'text', editable: true }, { name: 'Contact_No', type: 'tel', editable: true }, { name: 'Opening_Hours', type: 'text', editable: true }, { name: 'Manager_Id', type: 'number', editable: false }], endpoint: 'facilities/search' },
   employees:      { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'select', options: EMPLOYEE_ROLES, editable: true }, { name: 'Department', type: 'select', options: DEPARTMENTS, editable: true }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
-  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
+  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Customer_Id', type: 'text', editable: true }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
   feedback:       { fields: [{ name: 'Feedback_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Rating', type: 'number', editable: false }, { name: 'Comments', type: 'text', editable: false }], endpoint: 'feedback/search' },
   revenue:        { fields: [{ name: 'Financial_Year', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Avg_Revenue', type: 'number', editable: false }], endpoint: 'revenue/calculate_avg' },
-  inventory:      { fields: [{ name: 'Inventory_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Item_Name', type: 'text', editable: true }, { name: 'Quantity', type: 'number', editable: true }, { name: 'Price', type: 'number', editable: true }, { name: 'Supplier', type: 'text', editable: true }], endpoint: 'inventory/search' },
-  staff_schedule: { fields: [{ name: 'Schedule_Id', type: 'number', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Shift_Date', type: 'date', editable: true }, { name: 'Shift_Start', type: 'time', editable: true }, { name: 'Shift_End', type: 'time', editable: true }, { name: 'Task_Description', type: 'text', editable: true }], endpoint: 'staff_schedule/search' },
+  inventory:      { fields: [{ name: 'Inventory_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Item_Name', type: 'text', editable: true }, { name: 'Quantity', type: 'number', editable: true }, { name: 'Price', type: 'number', editable: true }, { name: 'Supplier', type: 'text', editable: true }], endpoint: 'inventory/search' },
+  staff_schedule: { fields: [{ name: 'Schedule_Id', type: 'number', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Shift_Date', type: 'date', editable: true }, { name: 'Shift_Start', type: 'time', editable: true }, { name: 'Shift_End', type: 'time', editable: true }, { name: 'Task_Description', type: 'text', editable: true }], endpoint: 'staff_schedule/search' },
 };
 
 const ManagerHome: React.FC = () => {
@@ -61,7 +61,8 @@ const ManagerHome: React.FC = () => {
     const schema = entitySchemas[activeTab];
     if (!schema) return;
     const base = schema.endpoint.split('/')[0];
-    const params = new URLSearchParams(formData).toString();
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const params = new URLSearchParams(cleaned as Record<string, string>).toString();
     const method = currentItem ? 'PUT' : 'POST';
     const action = currentItem ? 'update' : 'insert';
     try {
@@ -80,15 +81,16 @@ const ManagerHome: React.FC = () => {
           <form onSubmit={handleSubmit}>
             {schema.fields.map(field => {
               if (!field.editable && !currentItem) return null;
+              const key = field.name.toLowerCase();
               return (
                 <div key={field.name} className="form-group">
                   <label>{field.name.replace(/_/g, ' ')}</label>
                   {field.type === 'select' ? (
-                    <select name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} disabled={!field.editable}>
+                    <select name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} disabled={!field.editable}>
                       {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : (
-                    <input type={field.type} name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} disabled={!field.editable} />
+                    <input type={field.type} name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} disabled={!field.editable} />
                   )}
                 </div>
               );
@@ -113,7 +115,15 @@ const ManagerHome: React.FC = () => {
         <div className="table-header">
           <h3>{(entityLabels[activeTab] || activeTab).toUpperCase()} MANAGEMENT</h3>
           {activeTab !== 'revenue' && activeTab !== 'facility' && activeTab !== 'feedback' && (
-            <button onClick={() => { setEditMode(true); setCurrentItem(null); setFormData({}); }} className="btn-primary">Create New</button>
+            <button onClick={() => {
+              setEditMode(true); setCurrentItem(null);
+              // A <select> with no matching value still visually shows its first <option> (browser
+              // default), but React's state stays empty until the user touches it — pre-seed
+              // defaults so what's submitted matches what's already shown.
+              const defaults: Record<string, string> = {};
+              schema.fields.forEach(f => { if (f.type === 'select' && f.options?.length) defaults[f.name.toLowerCase()] = f.options[0]; });
+              setFormData(defaults);
+            }} className="btn-primary">Create New</button>
           )}
         </div>
         <div className="table-responsive">

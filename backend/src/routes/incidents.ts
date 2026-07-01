@@ -76,13 +76,18 @@ router.put('/update', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'incident_id is required' });
       return;
     }
+    if (reported_by && reported_by_customer_id) {
+      res.status(400).json({ error: 'Exactly one of reported_by or reported_by_customer_id is required' });
+      return;
+    }
 
     const setClauses: string[] = [];
     const values: (string | null)[] = [];
 
     if (facility_id !== undefined) { values.push(facility_id); setClauses.push(`facility_id = $${values.length}`); }
-    if (reported_by !== undefined) { values.push(reported_by); setClauses.push(`reported_by = $${values.length}`); }
-    if (reported_by_customer_id !== undefined) { values.push(reported_by_customer_id); setClauses.push(`reported_by_customer_id = $${values.length}`); }
+    // Setting one side of the exclusive arc clears the other, so chk_incident_reporter can't be violated.
+    if (reported_by !== undefined) { values.push(reported_by); setClauses.push(`reported_by = $${values.length}`, 'reported_by_customer_id = NULL'); }
+    if (reported_by_customer_id !== undefined) { values.push(reported_by_customer_id); setClauses.push(`reported_by_customer_id = $${values.length}`, 'reported_by = NULL'); }
     if (assigned_to !== undefined) { values.push(assigned_to); setClauses.push(`assigned_to = $${values.length}`); }
     if (description !== undefined) { values.push(description); setClauses.push(`description = $${values.length}`); }
     if (status !== undefined) { values.push(status); setClauses.push(`status = $${values.length}`); }

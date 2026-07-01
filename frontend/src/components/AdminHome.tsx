@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
 import { MdPeople } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
+import { AIRPORT } from '../config/airport';
 
 import FlightsTab from './admin_tab/FlightsTab';
 import FacilityTab from './admin_tab/FacilityTab';
@@ -51,7 +52,7 @@ const AdminHome: React.FC = () => {
 
       <nav style={dash.sidebar(isMobile, sidebarOpen)}>
         <div style={dash.sidebarHead}>
-          <h2 style={dash.sidebarH2}>Airport Admin</h2>
+          <h2 style={dash.sidebarH2}>{AIRPORT.adminLabel}</h2>
         </div>
         <div style={dash.sidebarBody}>
           <ul style={dash.navList}>

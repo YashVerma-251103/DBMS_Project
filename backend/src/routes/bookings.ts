@@ -33,9 +33,9 @@ router.get('/summary', async (_req: Request, res: Response) => {
              c.customer_name, c.contact_no,
              e.name AS employee_name
       FROM booking b
-      JOIN facility f ON b.facility_id = f.facility_id
+      LEFT JOIN facility f ON b.facility_id = f.facility_id
       JOIN customer c ON b.customer_id = c.customer_id
-      JOIN employee e ON b.employee_id = e.employee_id
+      LEFT JOIN employee e ON b.employee_id = e.employee_id
     `);
     res.json(result.rows);
   } catch (err) {
@@ -79,12 +79,18 @@ router.put('/update', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'booking_id is required' });
       return;
     }
+    if (facility_id && flight_id) {
+      res.status(400).json({ error: 'Exactly one of facility_id or flight_id is required' });
+      return;
+    }
 
     const setClauses: string[] = [];
     const values: string[] = [];
 
-    if (facility_id !== undefined) { values.push(facility_id); setClauses.push(`facility_id = $${values.length}`); }
-    if (flight_id !== undefined) { values.push(flight_id); setClauses.push(`flight_id = $${values.length}`); }
+    // Setting one side of the exclusive arc clears the other, so the chk_booking_target
+    // constraint can't be violated by an update that only touches one column.
+    if (facility_id !== undefined) { values.push(facility_id); setClauses.push(`facility_id = $${values.length}`, 'flight_id = NULL'); }
+    if (flight_id !== undefined) { values.push(flight_id); setClauses.push(`flight_id = $${values.length}`, 'facility_id = NULL'); }
     if (customer_id !== undefined) { values.push(customer_id); setClauses.push(`customer_id = $${values.length}`); }
     if (employee_id !== undefined) { values.push(employee_id); setClauses.push(`employee_id = $${values.length}`); }
     if (date_time !== undefined) { values.push(date_time); setClauses.push(`date_time = $${values.length}`); }
@@ -101,24 +107,6 @@ router.put('/update', async (req: Request, res: Response) => {
       values
     );
     res.json({ status: 'success', message: 'Booking updated successfully' });
-  } catch (err) {
-    res.status(500).json({ error: String(err) });
-  }
-});
-
-router.put('/status', async (req: Request, res: Response) => {
-  try {
-    const { Booking_Id, Payment_Status } = req.body;
-
-    const result = await pool.query(
-      `UPDATE booking SET payment_status = $1 WHERE booking_id = $2`,
-      [Payment_Status, Booking_Id]
-    );
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: 'No booking updated' });
-      return;
-    }
-    res.json({ message: 'Booking status updated' });
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

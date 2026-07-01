@@ -12,11 +12,11 @@ update the status markers as work lands.
 | 2 | Backend auth/identity routes | ✅ Done |
 | 3 | Remaining backend routes (inventory, flights, bookings, feedback, incidents) | ✅ Done |
 | 4 | Frontend identity fixes + route guards | ✅ Done |
-| 5 | Landing page | ⏳ Pending |
+| 5 | Landing page | ✅ Done (core booking loop; check-in/report-an-issue widgets are placeholders) |
 | 6 | Inventory admin/manager UI | ⏳ Pending |
-| 7 | Incident/complaint extension (UI) | ⏳ Pending |
-| 8 | Flight/lounge booking confirmation UI | ⏳ Pending |
-| 9 | Check-in tab | ⏳ Pending |
+| 7 | Incident/complaint extension (UI) | ⏳ Pending (Landing's "Report an Issue" widget is a placeholder) |
+| 8 | Flight/lounge booking confirmation UI | ✅ Done (folded into Step 5 — see below) |
+| 9 | Check-in tab | ⏳ Pending (Landing's "Check-in" widget is a placeholder) |
 | 10 | Admin staff-provisioning UI | ⏳ Pending |
 
 Branch: `restructure-impl`. Everything in steps 1–4 has been run against the live Supabase
@@ -51,6 +51,13 @@ check-in, complaints).
    the project via an access token (new tooling + account setup). A ~25-line script using
    the already-installed `pg` package fully solves "stop hand-pasting SQL into the
    Supabase editor" with less new surface area.
+8. **Customer post-login experience is the Landing page, not a separate dashboard.**
+   Admin/Manager/Employee keep distinct sidebar dashboards (they're doing operational
+   CRUD work). Customers are browsing/booking, so logging in enhances the same page they
+   were already on — booking buttons appear on flight/lounge search results, and the
+   "what you get" teaser cards become real widgets (My Bookings, Check-in, Report an
+   Issue) — instead of redirecting to a differently-laid-out `CustomerHome`. `CustomerHome`
+   is removed; `DASHBOARD_PATH.customer` points at `/`.
 
 ---
 
@@ -217,23 +224,167 @@ step in this phase.
 
 ---
 
-## ⏳ Step 5 — Landing page (next up)
+## ✅ Post-step-4 hardening pass
+
+A validation pass (code-review + security-review + ponytail-audit, each run against commit
+`4449691`) found real bugs and two security holes in steps 1-4's own work before step 5
+started. All fixed, both `npx tsc --noEmit` clean throughout:
+
+- **`URLSearchParams` stringifies JS `null` to the literal text `"null"`** — every booking
+  and incident edit form spreads a fetched row (which always has one side of an exclusive
+  arc as real `null`) into `formData`, so saving any existing booking/incident 500'd, and
+  creating a new admin booking 400'd. Fixed at all 4 sites (`admin_tab/BookingsTab.tsx`,
+  `admin_tab/IncidentTab.tsx`, `customer_tab/Booking.tsx`, `ManagerHome.tsx`) by filtering
+  null/undefined out of `formData` before building the query string.
+- **`ManagerHome.tsx`'s generic entitySchemas form used PascalCase `field.name` as the
+  literal form/query key** (`Name`, `Role`, ...) while every backend route expects lowercase
+  (`name`, `role`) — every create 400'd, every edit silently no-op'd. Fixed by lowercasing
+  the key in `renderForm`. Also: `Facility_Id`/`Customer_Id` were marked non-editable and
+  hidden from the create form entirely for bookings/inventory/staff_schedule, so those
+  entities could never be created via this UI regardless — now editable.
+- **`EmployeeHome.tsx`'s Profile tab fetched an unfiltered employee list** and showed
+  `data[0]` as "your profile" — any employee saw (and could overwrite) whichever employee
+  row the DB returned first. Now scoped to `?employee_id={currentUser.employeeId}`.
+- **`PUT /bookings/update` and `PUT /incidents/update` never re-validated the exclusive-arc
+  constraint** that `POST /create`/`POST /insert` already enforce — an update touching one
+  side left both non-null, surfacing as a raw 500 instead of a clean 400. Fixed with the
+  same check, and the newly-set side now auto-nulls the other.
+- **`GET /bookings/summary` inner-joined `facility`/`employee`**, both made nullable by this
+  same restructure (flight bookings have no facility, self-service bookings have no staff)
+  — flight and self-service bookings silently vanished from the report. Now `LEFT JOIN`.
+- **`employees.ts` never accepted/persisted `Department`**, even though `ManagerHome.tsx`'s
+  Employees tab (added in step 4) shows an editable Department field — edits silently
+  dropped. Fixed; also syncs the linked login's `users.role` (manager vs. employee
+  dashboard tier) whenever `Employee.Role` crosses the Manager boundary, closing a gap the
+  step 2 note already flagged ("revisit if a non-manager role ever needs elevated access").
+- **`users.ts`'s two transactions (signup, provision-staff) had an unguarded `ROLLBACK`**
+  inside their `catch` block — if the pooled connection itself had dropped, the ROLLBACK
+  call could throw uncaught, and since Express 4 doesn't catch async rejections, that risked
+  crashing the whole process, not just failing the one request. Fixed: `pool.connect()`
+  moved inside the `try`, `ROLLBACK` wrapped in its own guarded `try/catch`.
+- **Security — unauthenticated account takeover via `PUT /users`**: `login_id` is a
+  guessable `{contactNumber}_{role}` string, not a secret, and the route let anyone
+  overwrite any account's password with no ownership check. Compounding factor:
+  `GET /users` also returned the plaintext password, so a naive "require current password"
+  fix would've been defeated by fetching it first. Fixed properly: `GET /users` no longer
+  returns `password` at all; a new `POST /users/login` does the comparison server-side
+  (login flow moved off client-side compare in `LoginSignUp.tsx`); `PUT /users` now requires
+  and verifies `currentPassword`; `customer_tab/Profile.tsx` gained a real "current password"
+  field distinct from the optional "new password" one.
+- **Security — unauthenticated privilege escalation via `POST /users/provision-staff`**:
+  commented "admin-only" but enforced nothing, letting anyone mint a `Manager`-tier login.
+  Fixed: requires `adminLoginId`/`adminPassword` in the body, verified server-side against
+  an account with `role='admin'` before provisioning proceeds. (No frontend caller exists
+  yet — step 10 will need to send these two fields.)
+- **New migration** `database/migrations/0002_customer_contact_unique.sql` adds
+  `UNIQUE (Contact_No)` on `Customer` — Aadhaar used to guarantee one row per person; the
+  surrogate `Customer_Id` dropped that guarantee entirely. **Not yet applied** — see below.
+- **Passwords are now hashed**, not stored in plaintext. Added `bcryptjs` (pure-JS, no
+  native compilation — picked over `bcrypt` to avoid a build-toolchain dependency on
+  Windows). `POST /` (signup) and `POST /provision-staff` hash on insert; `POST /login`
+  and the `currentPassword`/`adminPassword` checks compare via `bcrypt.compare`; changing
+  a password through `PUT /users` hashes the new value before storing. New migration
+  `database/migrations/0003_pgcrypto.sql` enables `pgcrypto` (so `seed_users.sql` can
+  produce bcrypt-compatible hashes in pure SQL via `crypt()`/`gen_salt('bf')`) and
+  idempotently re-hashes any pre-existing plaintext password still in the `users` table —
+  necessary because `seed_users.sql`'s `ON CONFLICT (login_id) DO NOTHING` won't touch
+  rows that already exist. **Not yet applied** — see below. `seed_users.sql` updated to
+  seed hashed passwords (plaintext values for login are in comments next to each insert).
+- Deleted dead code found along the way: `PUT /bookings/status` (unused, superseded by
+  `PUT /bookings/update`), `database/wrong_queries.sql` and `database/Show_tables.sql`
+  (scratch/experiment files, not part of the live schema).
+
+**Verified live** (chrome-devtools MCP + curl, once DB connectivity was restored on a
+later retry — the IPv6 issue above turned out to be resolvable, not a hard blocker):
+migrations `0002` and `0003` applied cleanly (no pre-existing duplicate `Contact_No`
+values, plaintext passwords re-hashed). All 4 seeded roles log in via the new
+`POST /users/login`. Admin: booking create + edit, incident edit. Manager: Employee
+Department edit persists, Employee create, Inventory create (Facility ID field now
+enterable). Employee: Profile tab shows the correct employee (30), not employee 1.
+Customer: profile edit rejects empty/wrong `currentPassword` (400/403) and accepts the
+correct one, with `GET /users` confirmed to no longer return `password` at all; self-service
+booking create. `provision-staff` rejects missing creds (400), wrong admin password (403),
+and a valid-but-non-admin account (403), accepts correct admin creds (201).
+`GET /bookings/summary` now includes a self-service booking (`employee_name: null`) that
+the old `INNER JOIN` would have dropped. `PUT /bookings/update` cleanly rejects a
+facility_id+flight_id conflict with 400 instead of a raw 500.
+
+**One more bug found during this pass** (not in the original diff — a pre-existing issue the
+casing fix exposed by making creation reachable at all): `ManagerHome.tsx`'s "Create New"
+button seeded `formData` as `{}`. A `<select>` with no value matching an option still
+*visually* shows its first `<option>` (browser default), but React's controlled state stays
+unset until the user manually touches the dropdown — so Employee creation 400'd with `role`
+silently missing from the request, even though the form visibly showed "Manager" selected.
+Fixed by pre-seeding `formData` with each select field's first option when opening the
+create form, so the submitted state matches what's already shown.
+
+---
+
+## ✅ Step 5 — Landing page (+ Step 8 folded in)
 
 Repurpose the dead stub `frontend/src/pages/Home.tsx` (10 lines today, linked from
-nowhere) → `frontend/src/pages/Landing.tsx`, mounted at `/`. Sections:
+nowhere) → `frontend/src/pages/Landing.tsx`, mounted at `/`. Public (no `RequireAuth`),
+but reads `currentUser` from localStorage (same source `RequireAuth` already uses) to
+decide, per section, whether to show the logged-out or logged-in version — this is a
+content branch, not a route guard. Sections:
 1. Flights — embeds `<SearchFlights />` directly (reuse, not rebuild); that component
-   gains `origin`/`destination` inputs to match the backend's new filters.
+   gains `origin`/`destination` inputs to match the backend's new filters. Logged out:
+   read-only results. Logged-in customer: each result gains a "Book This Flight" button
+   (this is Step 8, landing here instead of a separate page/tab).
 2. Lounge information — `GET /facilities/search?type=Lounge`, showing the new
-   `Description` field as benefits copy.
+   `Description` field as benefits copy. Same logged-in-customer "Book This Lounge" button.
 3. Navigation — `GET /facilities/search` (unfiltered) grouped by `Type`, plus a static
-   to/from-airport paragraph (no map, per decision #4).
-4. Inventory/store search — hits the new `GET /inventory/search?item_name=...`.
-5. Static "what you get when you sign in" cards (Book flights & lounges / Online check-in
-   / Report an issue), each routing to `/login` — the hint-at-logged-in-features section.
-6. Header login/signup CTAs, visible throughout.
+   to/from-airport paragraph (no map, per decision #4). Not auth-dependent.
+4. Inventory/store search — hits the new `GET /inventory/search?item_name=...`. Not
+   auth-dependent.
+5. "What you get" cards. Logged out: static teasers (Book flights & lounges / Online
+   check-in / Report an issue), each routing to `/login`. Logged-in customer: the same 3
+   slots become real widgets — My Bookings (Step 8's booking list), Check-in (Step 9),
+   Report an Issue (Step 7's complaint form + history). Build these as slot-in components
+   from the start so 7/8/9 don't require reworking Landing later.
+6. Header — Login/Signup CTAs when logged out; "Hi, {name}" + Logout when logged in.
+   Profile editing is NOT a Landing section — reachable via the header (dropdown or a
+   lightweight `/profile` route reusing `customer_tab/Profile.tsx` as-is), since it's
+   account settings, not an airport-services feature.
 
 Also: collapse `App.tsx`'s route table — `/` → `Landing`, drop the now-redundant
-`/LoginSignup` registration (keep `/login` as the only canonical path).
+`/LoginSignup` registration (keep `/login` as the only canonical path). Remove the
+`/CustomerHome` route and its `RequireAuth` wrapper entirely; repoint
+`DASHBOARD_PATH.customer` (in `types/index.ts`) to `/`. No layout-jump on login — logging
+in re-renders the same page with more content, not a redirect to a different-looking one.
+
+**Built:** all 6 sections above, plus a design pass per the glassmorphism/dimensional-
+layering direction agreed on (light glass — 0.78-0.92 opacity, not the classic 10-30%,
+to keep text contrast — for hero/lounge/CTA cards over the gradient background; solid
+elevated cards with no blur for data-dense areas: flight/inventory results and the
+facility directory). New `frontend/src/components/landing/` holds `LoungeSection.tsx`,
+`NavigationSection.tsx`, `InventorySection.tsx`, `MyBookings.tsx`. `ds.ts` gained `colors`,
+`elevation`, `landing` style tokens, plus `useScrolled` and a native-`IntersectionObserver`
+`useReveal` hook (no animation library added) for scroll-reveal, respecting
+`prefers-reduced-motion`. `SearchFlights.tsx` restyled in place, gained origin/destination
+inputs and the booking button. Deleted now-dead `pages/Home.tsx`,
+`components/CustomerHome.tsx`, `customer_tab/Booking.tsx` (superseded by
+`landing/MyBookings.tsx`), `customer_tab/Facilities.tsx` (superseded by Landing's
+Navigation section) — `customer_tab/Profile.tsx` survives, now routed directly at
+`/profile`. Added `Flight.flight_id` and a new `Inventory` interface to `types/index.ts`
+(both were missing despite the backend already returning them).
+
+**Scope note:** Check-in (Step 9) and Report-an-Issue (Step 7's customer half) render as
+"Coming soon" placeholders in the "what you get" slots — they're real, separate features
+with their own backend interactions already built, just not wired into a UI yet. My
+Bookings (part of Step 8) is fully wired since it's the natural companion to the booking
+buttons.
+
+**Verified live in a real browser** (chrome-devtools MCP): logged-out and logged-in
+(customer) states, desktop (1440px) and mobile (390px) widths, scroll-reveal and sticky
+glass header confirmed via DOM inspection (a full-page screenshot's stitching made both
+look broken in static captures — false alarms). Two real bugs caught by this and fixed:
+fetch responses weren't guarded against non-array error bodies (crashed the whole page on
+any API failure — now falls back to `[]`), and empty result sets rendered nothing instead
+of a message. `npx tsc --noEmit` clean throughout. **Not verified against live data** —
+the Supabase IPv6 connectivity issue from the earlier hardening pass recurred during this
+session; the page was confirmed to degrade gracefully (error states, not crashes) rather
+than confirmed correct against real rows. Re-check once connectivity is back.
 
 ## ⏳ Step 6 — Inventory admin/manager UI
 
@@ -245,22 +396,24 @@ or schema changes — this step is the dedicated admin tab UI on top of that.
 ## ⏳ Step 7 — Incident/complaint extension (UI)
 
 Update `admin_tab/IncidentTab.tsx` for the dual reporter type (employee vs. customer) and
-the new `Assigned_To` column. New `customer_tab/Complaints.tsx`: lists a customer's past
-complaints (`GET /incidents/search?reported_by_customer_id=...`) and a small form
-(Facility `<select>`, Description) posting to `/incidents/insert` with
-`reported_by_customer_id`. Register as a new tab in `CustomerHome.tsx`.
+the new `Assigned_To` column. New component (not a `CustomerHome` tab — renders inside
+Landing's "Report an Issue" slot, per decision #8): lists a customer's past complaints
+(`GET /incidents/search?reported_by_customer_id=...`) and a small form (Facility
+`<select>`, Description) posting to `/incidents/insert` with `reported_by_customer_id`.
 
 ## ⏳ Step 8 — Flight/lounge booking confirmation UI
 
-"Book this flight" action on `SearchFlights.tsx` for logged-in customers
-(`POST /bookings/create` with `flight_id`). Lounge booking already works structurally
-(step 2's Customer-row fix + step 4's frontend fixes are both live).
+"Book this flight"/"Book this lounge" actions embedded directly in Landing's Flights and
+Lounge sections for logged-in customers (`POST /bookings/create` with `flight_id` or
+`facility_id`), plus a "My Bookings" widget in Landing's "what you get" slot listing the
+customer's own bookings (reuses `customer_tab/Booking.tsx`'s list/edit logic, adapted to
+render inside Landing rather than `CustomerHome`).
 
 ## ⏳ Step 9 — Check-in tab
 
-New `customer_tab/CheckIn.tsx`: lists the customer's flight bookings, a "Check In" button
-per row (disabled if already `checked_in`) calling `PUT /bookings/checkin`. Register as a
-new tab in `CustomerHome.tsx`.
+New component rendering inside Landing's "Check-in" slot (not a `CustomerHome` tab):
+lists the customer's flight bookings, a "Check In" button per row (disabled if already
+`checked_in`) calling `PUT /bookings/checkin`.
 
 ## ⏳ Step 10 — Admin staff-provisioning UI
 
@@ -286,16 +439,18 @@ one file still using the old 6-value inline array).
 ## Verification checklist for the remaining steps
 
 1. Landing page: visit `/` logged out — flight search, lounge info, navigation, inventory
-   search all render and return data without auth; "sign in for more" CTA routes to
-   `/login`.
-2. Inventory admin UI: create/edit/delete an item as admin or manager, confirm it shows
+   search all render and return data without auth; "what you get" cards route to `/login`.
+2. Landing page, logged in as customer: same visit to `/` (no redirect) now shows "Book
+   This Flight"/"Book This Lounge" buttons and the "what you get" slots replaced by real
+   My Bookings / Check-in / Report an Issue widgets.
+3. Inventory admin UI: create/edit/delete an item as admin or manager, confirm it shows
    up in the public landing-page search.
-3. Complaint flow end-to-end: file a complaint as a customer in the new UI, confirm it
-   appears in `admin_tab/IncidentTab.tsx` with `Assigned_To` populated.
-4. Flight booking UI: search a flight, book it as a logged-in customer from the new "Book"
-   action, confirm it appears in `CustomerHome`'s bookings list.
-5. Check-in UI: check in a flight booking from the new tab, confirm `Checked_In` flips and
-   a lounge booking shows no check-in option.
-6. Staff provisioning UI: create a new staff member with a Department from the admin UI,
+4. Complaint flow end-to-end: file a complaint as a customer from Landing's Report-an-Issue
+   widget, confirm it appears in `admin_tab/IncidentTab.tsx` with `Assigned_To` populated.
+5. Flight booking UI: search a flight, book it as a logged-in customer from Landing's "Book"
+   action, confirm it appears in Landing's My Bookings widget.
+6. Check-in UI: check in a flight booking from Landing's Check-in widget, confirm
+   `Checked_In` flips and a lounge booking shows no check-in option.
+7. Staff provisioning UI: create a new staff member with a Department from the admin UI,
    confirm the generated `loginId` logs in and lands on `EmployeeHome` with Department
    visible on the profile tab.

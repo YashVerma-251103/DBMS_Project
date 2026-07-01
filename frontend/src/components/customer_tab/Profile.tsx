@@ -7,6 +7,8 @@ const Profile: React.FC = () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
   const loginId = currentUser?.loginId || "";
   const [profileData, setProfileData] = useState<Partial<User>>({});
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fetchProfileData = async () => {
@@ -23,14 +25,28 @@ const Profile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentPassword) { alert("Enter your current password to save changes."); return; }
     try {
+      const body: Record<string, unknown> = {
+        name: profileData.name,
+        contactNumber: (profileData as any).contactNumber,
+        currentPassword,
+      };
+      if (newPassword) body.password = newPassword;
+
       const res = await fetch(`${API}/users?loginId=${loginId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify(body),
       });
-      if (res.ok) { alert("Profile updated successfully."); fetchProfileData(); }
-      else console.error("Error updating profile. Status:", res.status);
+      if (res.ok) {
+        alert("Profile updated successfully.");
+        setCurrentPassword(""); setNewPassword("");
+        fetchProfileData();
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.error || 'update failed'}`);
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -49,8 +65,12 @@ const Profile: React.FC = () => {
           <input type="text" name="contactNumber" value={(profileData as any).contactNumber || ''} onChange={(e) => setProfileData({ ...profileData, contactNumber: e.target.value } as any)} />
         </div>
         <div className="form-group">
-          <label>Password</label>
-          <input type="password" name="password" value={profileData.password || ''} onChange={(e) => setProfileData({ ...profileData, password: e.target.value })} />
+          <label>New Password (leave blank to keep your current one)</label>
+          <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Current Password (required to save changes)</label>
+          <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
         </div>
         <div className="form-group">
           <label>Login ID</label>

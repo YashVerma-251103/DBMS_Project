@@ -22,6 +22,113 @@ code { font-family: source-code-pro, Menlo, Monaco, Consolas, monospace; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Scroll reveal (Landing page) ──────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(44px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-visible { opacity: 1; transform: translateY(0); }
+
+html { scroll-behavior: smooth; }
+
+/* ── Ambient background motion (Landing hero) ──────── */
+@keyframes floatBlob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(18px, -24px) scale(1.05); }
+}
+.float-blob { animation: floatBlob 16s ease-in-out infinite; }
+.float-blob-slow { animation: floatBlob 22s ease-in-out infinite reverse; }
+
+@keyframes planeBob {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50%      { transform: translateY(-14px) rotate(-8deg); }
+}
+.plane-bob { animation: planeBob 4s ease-in-out infinite; }
+
+@keyframes drawPath {
+  from { stroke-dashoffset: 400; }
+  to   { stroke-dashoffset: 0; }
+}
+.draw-path { animation: drawPath 2.4s ease-out forwards; }
+
+@keyframes cloudDrift {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(24px); }
+}
+.cloud-drift { animation: cloudDrift 8s ease-in-out infinite alternate; }
+
+/* ── Nav link hover (Landing header) — :hover can't be expressed via inline
+   styles, so this piece of the nav-link treatment lives in a real CSS class. */
+.nav-link-pill {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.nav-link-pill:hover { background: rgba(30,136,229,0.08); }
+.nav-link-pill.nav-link-light:hover { background: rgba(255,255,255,0.16); }
+
+/* ── Card hover lift — real :hover, used by result/list cards ─────── */
+.elevated-card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.elevated-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(13,27,42,0.10);
+  border-color: rgba(30,136,229,0.35);
+}
+.glass-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.glass-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(13,27,42,0.14);
+}
+
+/* ── Fade-in for async content once it lands (search/list results) ── */
+.fade-in { animation: fadeIn 0.4s ease-out; }
+
+/* ── Input focus (Landing search forms) — :focus needs real CSS too ── */
+.input-focus { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.input-focus:focus {
+  outline: none;
+  border-color: #1e88e5 !important;
+  box-shadow: 0 0 0 3px rgba(30,136,229,0.15);
+}
+
+/* ── Icon-only buttons (cancel/close) — round hover background ────── */
+.icon-btn-hover { border-radius: 50%; transition: background 0.15s ease; }
+.icon-btn-hover:hover { background: rgba(220,53,69,0.10); }
+
+/* ── ctaPrimary hover for map()-rendered instances (repeated CTAs where
+   per-card React hover state isn't worth tracking — CSS handles it natively) ── */
+.cta-primary-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.cta-primary-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(249,115,22,0.45);
+  background: linear-gradient(135deg, #c2410c, #f97316) !important;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.loading-pulse { animation: loadingPulse 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: none; }
+  .elevated-card-hover, .elevated-card-hover:hover,
+  .glass-card-hover, .glass-card-hover:hover { transform: none; transition: none; }
+  .fade-in { animation: none; }
+  .loading-pulse { animation: none; }
+  html { scroll-behavior: auto; }
+  .float-blob, .float-blob-slow, .plane-bob, .cloud-drift { animation: none; }
+  .draw-path { animation: none; stroke-dashoffset: 0; }
+}
+
 /* ── Auth page elements ────────────────────────────── */
 .auth-input, .auth-select {
   width: 100%;

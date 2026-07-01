@@ -37,7 +37,8 @@ const IncidentTab: React.FC = () => {
     const isUpdate = !!currentIncident;
     const url = isUpdate ? `${API}/incidents/update` : `${API}/incidents/insert`;
     const method = isUpdate ? "PUT" : "POST";
-    const params = new URLSearchParams(formData).toString();
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const params = new URLSearchParams(cleaned as Record<string, string>).toString();
     try {
       const res = await fetch(`${url}?${params}`, { method });
       if (res.ok) { alert(`Incident ${isUpdate ? "updated" : "created"}!`); fetchData(); setEditMode(false); setCurrentIncident(null); }

@@ -8,6 +8,14 @@ Use skills proactively:
 - `/ponytail` when weighing architecture or dependency choices
 - `/code-review` before declaring a feature done
 
+## Git workflow
+- Micro-commit: one logical change per commit (e.g. "data consolidation", "error fallback",
+  "docs"), not one big commit per task. Keeps rollback of a single piece cheap without
+  touching the others.
+- Branch-per-experiment: when trying something new or uncertain (a refactor, an unproven
+  pattern, a risky fix), create a feature branch first, commit there, and only merge back
+  into the working branch once it's verified working (typecheck + manual/functional check).
+
 ## Stack (don't re-read README for this)
 | Layer | What |
 |---|---|

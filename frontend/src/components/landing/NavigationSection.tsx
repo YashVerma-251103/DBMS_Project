@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaMapMarkerAlt, FaWalking } from 'react-icons/fa';
 import { Facility } from '../../types';
 import { landing, colors } from '../../styles/ds';
+import { AIRPORT } from '../../config/airport';
 
 const API = 'http://localhost:5000';
 
@@ -27,11 +28,9 @@ const NavigationSection: React.FC = () => {
       <div style={{ ...landing.glassCard, padding: 24, marginBottom: 28, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
         <FaWalking color={colors.primary} size={22} style={{ flexShrink: 0, marginTop: 2 }} />
         <div>
-          <h4 style={{ margin: '0 0 8px', color: colors.primaryDark }}>Getting to and from the airport</h4>
+          <h4 style={{ margin: '0 0 8px', color: colors.primaryDark }}>{AIRPORT.navigation.heading}</h4>
           <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.6, color: colors.inkMuted }}>
-            The airport is served by metro, taxi ranks, and pre-paid cab counters at every terminal's arrivals
-            level. Inside, moving walkways and signage connect all terminals to security, gates, lounges, and
-            stores — allow at least 45 minutes from the main entrance to your gate during peak hours.
+            {AIRPORT.navigation.description}
           </p>
         </div>
       </div>

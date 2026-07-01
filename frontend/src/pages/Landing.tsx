@@ -7,6 +7,7 @@ import NavigationSection from '../components/landing/NavigationSection';
 import InventorySection from '../components/landing/InventorySection';
 import MyBookings from '../components/landing/MyBookings';
 import { landing, colors, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
+import { AIRPORT } from '../config/airport';
 
 interface CurrentUser { name: string; role: string; customerId?: number | null; }
 
@@ -77,7 +78,7 @@ const Landing: React.FC = () => {
         <div style={landing.headerInner(isMobile)}>
           <h1 style={landing.logo(scrolled)}>
             <FaPlaneDeparture style={{ marginRight: 10, verticalAlign: 'middle' }} />
-            {isMobile ? 'AMS' : 'Airport Management System'}
+            {isMobile ? AIRPORT.shortName : AIRPORT.name}
           </h1>
 
           <ul style={landing.navLinks(isMobile)}>
@@ -149,7 +150,7 @@ const Landing: React.FC = () => {
         <section style={{ ...landing.section(isMobile), position: 'relative', zIndex: 2, paddingTop: isMobile ? 110 : 150, paddingBottom: 0 }}>
           <Reveal>
             <div style={{ maxWidth: 780, marginBottom: isMobile ? 32 : 48 }}>
-              <span style={landing.sectionEyebrow('rgba(255,255,255,0.85)')}>Airport Management System</span>
+              <span style={landing.sectionEyebrow('rgba(255,255,255,0.85)')}>{AIRPORT.name}</span>
               <h2 style={landing.heroHeading(isMobile)}>Your next flight, all in one place.</h2>
               <p style={landing.heroSubtext(isMobile)}>
                 Search flights, browse lounges, find your way around, and shop every store —
@@ -195,7 +196,7 @@ const Landing: React.FC = () => {
         <div className="float-blob" style={blob('rgba(8,145,178,0.14)', 340, '5%', '80%')} />
         <Reveal>
           <SectionHeading icon={<FaMapMarkedAlt size={20} />} color={colors.teal} eyebrow="Get around" title="Find your way" mobile={isMobile} />
-          <p style={{ ...landing.sectionSubtext, marginTop: 8 }}>Every facility in the airport, grouped by type, plus how to get here.</p>
+          <p style={{ ...landing.sectionSubtext, marginTop: 8 }}>{AIRPORT.facilitiesDescription}</p>
           <NavigationSection />
         </Reveal>
       </section>
@@ -205,7 +206,7 @@ const Landing: React.FC = () => {
         <div className="float-blob-slow" style={blob('rgba(124,58,237,0.12)', 320, '20%', '-80px')} />
         <div style={landing.section(isMobile)}>
           <Reveal>
-            <SectionHeading icon={<FaStore size={20} />} color={colors.violet} eyebrow="Shop" title="Shop the airport" mobile={isMobile} />
+            <SectionHeading icon={<FaStore size={20} />} color={colors.violet} eyebrow="Shop" title={AIRPORT.shopTitle} mobile={isMobile} />
             <p style={{ ...landing.sectionSubtext, marginTop: 8 }}>Looking for something specific? Search every store at once.</p>
             <InventorySection />
           </Reveal>
@@ -273,7 +274,7 @@ const Landing: React.FC = () => {
       </section>
 
       <footer style={landing.footer}>
-        &copy; {new Date().getFullYear()} Airport Management System — DBMS course project.
+        &copy; {new Date().getFullYear()} {AIRPORT.footerText}
       </footer>
     </div>
   );

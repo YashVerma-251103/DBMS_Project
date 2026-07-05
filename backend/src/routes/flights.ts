@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/search', async (req: Request, res: Response) => {
   try {
-    const { flight_number, airline, departure_date } = req.query as Record<string, string>;
+    const { flight_number, airline, departure_date, origin, destination } = req.query as Record<string, string>;
 
     let query = 'SELECT * FROM flight WHERE 1=1';
     const values: string[] = [];
@@ -22,6 +22,14 @@ router.get('/search', async (req: Request, res: Response) => {
       values.push(departure_date);
       query += ` AND DATE(departure_time) = $${values.length}`;
     }
+    if (origin) {
+      values.push(`%${origin}%`);
+      query += ` AND origin ILIKE $${values.length}`;
+    }
+    if (destination) {
+      values.push(`%${destination}%`);
+      query += ` AND destination ILIKE $${values.length}`;
+    }
 
     const result = await pool.query(query, values);
     res.json(result.rows);
@@ -32,7 +40,7 @@ router.get('/search', async (req: Request, res: Response) => {
 
 router.post('/create', async (req: Request, res: Response) => {
   try {
-    const { flight_number, airline, departure_time, arrival_time, status, gate, terminal } =
+    const { flight_number, airline, origin, destination, departure_time, arrival_time, status, gate, terminal } =
       req.query as Record<string, string>;
 
     if (!flight_number || !airline) {
@@ -41,9 +49,9 @@ router.post('/create', async (req: Request, res: Response) => {
     }
 
     await pool.query(
-      `INSERT INTO flight (flight_number, airline, departure_time, arrival_time, status, gate, terminal)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [flight_number, airline, departure_time || null, arrival_time || null, status || 'On Time', gate || null, terminal || null]
+      `INSERT INTO flight (flight_number, airline, origin, destination, departure_time, arrival_time, status, gate, terminal)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [flight_number, airline, origin || null, destination || null, departure_time || null, arrival_time || null, status || 'On Time', gate || null, terminal || null]
     );
     res.json({ status: 'success', message: 'Flight created successfully' });
   } catch (err) {
@@ -53,7 +61,7 @@ router.post('/create', async (req: Request, res: Response) => {
 
 router.put('/update', async (req: Request, res: Response) => {
   try {
-    const { flight_number, airline, departure_time, arrival_time, status, gate, terminal } =
+    const { flight_number, airline, origin, destination, departure_time, arrival_time, status, gate, terminal } =
       req.query as Record<string, string>;
 
     if (!flight_number) {
@@ -65,6 +73,8 @@ router.put('/update', async (req: Request, res: Response) => {
     const values: (string | null)[] = [];
 
     if (airline !== undefined) { values.push(airline); setClauses.push(`airline = $${values.length}`); }
+    if (origin !== undefined) { values.push(origin); setClauses.push(`origin = $${values.length}`); }
+    if (destination !== undefined) { values.push(destination); setClauses.push(`destination = $${values.length}`); }
     if (departure_time !== undefined) { values.push(departure_time); setClauses.push(`departure_time = $${values.length}`); }
     if (arrival_time !== undefined) { values.push(arrival_time); setClauses.push(`arrival_time = $${values.length}`); }
     if (status !== undefined) { values.push(status); setClauses.push(`status = $${values.length}`); }

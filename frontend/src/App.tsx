@@ -1,26 +1,26 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import SearchFlights from "./pages/SearchFlights";
-import LoginSignUp from "./components/LoginSignUp";
+import Landing from "./pages/Landing";
 import AdminHome from "./components/AdminHome";
 import ManagerHome from "./components/ManagerHome";
 import EmployeeHome from "./components/EmployeeHome";
-import CustomerHome from "./components/CustomerHome";
+import RequireAuth from "./components/RequireAuth";
+import Profile from "./components/customer_tab/Profile";
 
 function App() {
   return (
     <Router>
       <div>
         <Routes>
-          <Route path="/" element={<LoginSignUp />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/flights/search" element={<SearchFlights />} />
-          <Route path="/LoginSignup" element={<LoginSignUp />} />
-          <Route path="/AdminHome" element={<AdminHome />} />
-          <Route path="/ManagerHome" element={<ManagerHome />} />
-          <Route path="/EmployeeHome" element={<EmployeeHome />} />
-          <Route path="/CustomerHome" element={<CustomerHome />} />
+          <Route path="/" element={<Landing />} />
+          {/* Login/Signup is a modal Landing renders over itself, not a separate page —
+              this route exists so /login stays linkable (RequireAuth redirects here),
+              and Landing auto-opens the modal when it detects this exact path. */}
+          <Route path="/login" element={<Landing />} />
+          <Route path="/profile" element={<RequireAuth role="customer"><Profile /></RequireAuth>} />
+          <Route path="/AdminHome" element={<RequireAuth role="admin"><AdminHome /></RequireAuth>} />
+          <Route path="/ManagerHome" element={<RequireAuth role="manager"><ManagerHome /></RequireAuth>} />
+          <Route path="/EmployeeHome" element={<RequireAuth role="employee"><EmployeeHome /></RequireAuth>} />
         </Routes>
       </div>
     </Router>

@@ -1,34 +1,47 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { FaTimes } from "react-icons/fa";
 
-const page: React.CSSProperties = {
-  minHeight: '100vh',
-  background: 'linear-gradient(135deg, #e0f2ff 0%, #f0f8ff 100%)',
+const overlay: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(13,27,42,0.55)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: '40px 20px',
-  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  zIndex: 2000,
 };
 
 const card: React.CSSProperties = {
   width: '100%',
   maxWidth: 520,
   padding: '40px',
-  borderRadius: 12,
-  boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
-  backgroundColor: 'rgba(255,255,255,0.97)',
-  border: '1px solid #cce0ff',
+  borderRadius: 18,
+  boxShadow: '0 16px 48px rgba(13,27,42,0.32)',
+  backgroundColor: '#fff',
   position: 'relative',
   overflow: 'hidden',
+  maxHeight: '90vh',
+  overflowY: 'auto',
 };
 
 const accentBar: React.CSSProperties = {
   position: 'absolute',
   top: 0, left: 0, right: 0,
-  height: 7,
-  background: 'linear-gradient(to right, #2962ff, #00b0ff)',
-  borderRadius: '12px 12px 0 0',
+  height: 5,
+  background: 'linear-gradient(135deg, #1e88e5, #42a5f5)',
+};
+
+const closeBtn: React.CSSProperties = {
+  position: 'absolute',
+  top: 16, right: 16,
+  background: 'rgba(13,27,42,0.06)',
+  border: 'none',
+  borderRadius: '50%',
+  width: 32, height: 32,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  cursor: 'pointer',
+  color: '#4a5d7e',
 };
 
 const tabsRow: React.CSSProperties = {
@@ -81,21 +94,36 @@ const generatedBox: React.CSSProperties = {
   marginTop: 24,
   padding: 16,
   backgroundColor: '#e3f2fd',
-  borderRadius: 6,
-  borderLeft: '5px solid #00aaff',
+  borderRadius: 8,
+  borderLeft: '5px solid #1e88e5',
   color: '#0d47a1',
   fontSize: 14,
   animation: 'fadeIn 0.4s ease-out',
 };
 
-const LoginSignUp: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+interface LoggedInUser { name: string; role: string; [key: string]: unknown; }
+
+interface Props {
+  initialTab?: "login" | "signup";
+  onClose: () => void;
+  onLoginSuccess: (user: LoggedInUser) => void;
+}
+
+// Renders as an overlay modal on top of Landing, not a separate page — logging in should
+// feel like unlocking the page you're already on, not a trip somewhere else and back.
+const LoginSignUp: React.FC<Props> = ({ initialTab = "login", onClose, onLoginSuccess }) => {
+  const [activeTab, setActiveTab] = useState<"login" | "signup">(initialTab);
   const [loginData, setLoginData] = useState({ loginId: "", password: "" });
   const [signupData, setSignupData] = useState({
-    name: "", contactNumber: "", aaddhaar_no: "", role: "", password: "", confirmPassword: "",
+    name: "", contactNumber: "", age: "", sex: "", nationality: "", password: "", confirmPassword: "",
   });
   const [generatedLoginId, setGeneratedLoginId] = useState("");
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -106,42 +134,52 @@ const LoginSignUp: React.FC = () => {
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (signupData.password !== signupData.confirmPassword) { alert("Passwords don't match!"); return; }
-    const loginId = `${signupData.contactNumber}_${signupData.role}`;
+    const loginId = `${signupData.contactNumber}_customer`;
     try {
       const response = await fetch("http://localhost:5000/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: signupData.name, contactNumber: signupData.contactNumber, aaddhaar_no: signupData.aaddhaar_no, role: signupData.role, password: signupData.password, loginId }),
+        body: JSON.stringify({
+          name: signupData.name,
+          contactNumber: signupData.contactNumber,
+          age: Number(signupData.age),
+          sex: signupData.sex,
+          nationality: signupData.nationality,
+          password: signupData.password,
+          loginId,
+        }),
       });
       if (!response.ok) { const err = await response.json(); alert(`Registration failed: ${err.error}`); return; }
       setGeneratedLoginId(loginId);
-      alert("Registration successful! Your Login ID: " + loginId);
+      // Straight into the login tab, pre-filled — the point of showing the generated ID
+      // is so they can use it immediately, not copy it down for later.
+      setLoginData({ loginId, password: "" });
+      setActiveTab("login");
     } catch (error) { console.error("Registration failed:", error); }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/users?loginId=${loginData.loginId}`);
-      const users = await response.json();
-      if (users.length > 0 && users[0].password === loginData.password) {
-        localStorage.setItem("currentUser", JSON.stringify(users[0]));
-        const id = loginData.loginId.toLowerCase();
-        if (id.includes("admin"))    navigate("/AdminHome");
-        else if (id.includes("manager"))  navigate("/ManagerHome");
-        else if (id.includes("employee")) navigate("/EmployeeHome");
-        else if (id.includes("customer")) navigate("/CustomerHome");
-        else alert("Logged in, but role not recognized for redirection.");
-      } else {
-        alert("Invalid credentials!");
-      }
+      const response = await fetch("http://localhost:5000/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId: loginData.loginId, password: loginData.password }),
+      });
+      if (!response.ok) { alert("Invalid credentials!"); return; }
+      const user = await response.json();
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      onLoginSuccess(user);
     } catch (error) { console.error("Login failed:", error); }
   };
 
   return (
-    <div style={page}>
+    <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={card}>
         <div style={accentBar} />
+        <button style={closeBtn} onClick={onClose} aria-label="Close">
+          <FaTimes size={14} />
+        </button>
 
         <div style={tabsRow}>
           <button style={tabBtn(activeTab === "login")}  onClick={() => setActiveTab("login")}>Login</button>
@@ -151,6 +189,11 @@ const LoginSignUp: React.FC = () => {
         {activeTab === "login" ? (
           <>
             <h2 style={heading}>Login</h2>
+            {generatedLoginId && (
+              <div style={generatedBox}>
+                <p style={{ margin: 0 }}>Account created! Your Login ID <strong style={{ color: '#1e88e5' }}>{generatedLoginId}</strong> is filled in below — just add your password.</p>
+              </div>
+            )}
             <form onSubmit={handleLoginSubmit}>
               <div style={fgRow}>
                 <label style={label} htmlFor="loginId">Login ID</label>
@@ -176,18 +219,21 @@ const LoginSignUp: React.FC = () => {
                 <input className="auth-input" id="contactNumber" name="contactNumber" type="tel" value={signupData.contactNumber} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="aaddhaar_no">Aadhaar Number</label>
-                <input className="auth-input" id="aaddhaar_no" name="aaddhaar_no" type="text" value={signupData.aaddhaar_no} onChange={handleSignupChange} required />
+                <label style={label} htmlFor="age">Age</label>
+                <input className="auth-input" id="age" name="age" type="number" min={0} value={signupData.age} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="role">Role</label>
-                <select className="auth-select" id="role" name="role" value={signupData.role} onChange={handleSignupChange} required>
-                  <option value="" disabled>Select Role</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="employee">Employee</option>
-                  <option value="customer">Customer</option>
+                <label style={label} htmlFor="sex">Sex <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span></label>
+                <select className="auth-select" id="sex" name="sex" value={signupData.sex} onChange={handleSignupChange}>
+                  <option value="">Prefer not to say</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
+              </div>
+              <div style={fgRow}>
+                <label style={label} htmlFor="nationality">Nationality <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span></label>
+                <input className="auth-input" id="nationality" name="nationality" type="text" value={signupData.nationality} onChange={handleSignupChange} />
               </div>
               <div style={fgRow}>
                 <label style={label} htmlFor="password">Create Password</label>
@@ -199,13 +245,6 @@ const LoginSignUp: React.FC = () => {
               </div>
               <button type="submit" className="auth-submit">Sign Up</button>
             </form>
-
-            {generatedLoginId && (
-              <div style={generatedBox}>
-                <p style={{ margin: '0 0 6px' }}>Your Login ID: <strong style={{ color: '#1e88e5' }}>{generatedLoginId}</strong></p>
-                <p style={{ margin: 0, opacity: 0.85 }}>Please save this for future logins.</p>
-              </div>
-            )}
           </>
         )}
       </div>

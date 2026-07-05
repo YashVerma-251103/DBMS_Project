@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSignOutAlt, FaHome } from 'react-icons/fa';
 import { MdPeople } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
+import { AIRPORT } from '../config/airport';
 
 import FlightsTab from './admin_tab/FlightsTab';
 import FacilityTab from './admin_tab/FacilityTab';
+import InventoryTab from './admin_tab/InventoryTab';
 import BookingsTab from './admin_tab/BookingsTab';
 import IncidentTab from './admin_tab/IncidentTab';
 import FeedbackTab from './admin_tab/FeedbackTab';
@@ -16,6 +18,7 @@ import StaffScheduleTab from './admin_tab/Staff_ScheduleTab';
 const tabs: Record<string, { label: string; Component: React.FC }> = {
   flights:        { label: 'Flights',       Component: FlightsTab },
   facility:       { label: 'Facility',       Component: FacilityTab },
+  inventory:      { label: 'Inventory',      Component: InventoryTab },
   bookings:       { label: 'Bookings',       Component: BookingsTab },
   incidents:      { label: 'Incidents',      Component: IncidentTab },
   feedback:       { label: 'Feedback',       Component: FeedbackTab },
@@ -29,8 +32,18 @@ const AdminHome: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [logoutHov, setLogoutHov] = useState(false);
+  const [backHov, setBackHov] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+
+  // RequireAuth already guarantees a valid admin session by the time this renders.
+  let currentUser: { name?: string } | null = null;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { currentUser = null; }
+
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
+    navigate('/', { replace: true });
+  };
 
   const { Component: Active } = tabs[activeTab];
 
@@ -51,7 +64,15 @@ const AdminHome: React.FC = () => {
 
       <nav style={dash.sidebar(isMobile, sidebarOpen)}>
         <div style={dash.sidebarHead}>
-          <h2 style={dash.sidebarH2}>Airport Admin</h2>
+          <h2 style={dash.sidebarH2}>{AIRPORT.adminLabel}</h2>
+          <button
+            style={dash.backLink(backHov)}
+            onMouseEnter={() => setBackHov(true)}
+            onMouseLeave={() => setBackHov(false)}
+            onClick={() => navigate('/')}
+          >
+            <FaHome size={13} /> Back to Landing
+          </button>
         </div>
         <div style={dash.sidebarBody}>
           <ul style={dash.navList}>
@@ -71,7 +92,7 @@ const AdminHome: React.FC = () => {
             <div style={dash.profileRow}>
               <div style={dash.avatar}><MdPeople size={22} /></div>
               <div style={dash.profileMeta}>
-                <span style={dash.profileName}>Admin User</span>
+                <span style={dash.profileName}>{currentUser?.name || 'Admin User'}</span>
                 <span style={dash.profileRole}>Administrator</span>
               </div>
             </div>
@@ -79,7 +100,7 @@ const AdminHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={handleLogout}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

@@ -8,10 +8,12 @@ const API = "http://localhost:5000";
 const emptyBooking: Omit<Booking, "booking_id"> & { booking_id: string } = {
   booking_id: "",
   facility_id: 0,
-  aadhaar_no: "",
+  flight_id: null,
+  customer_id: 0,
   employee_id: 0,
   date_time: "",
   payment_status: "Pending",
+  checked_in: false,
 };
 
 const BookingsTab: React.FC = () => {
@@ -58,7 +60,8 @@ const BookingsTab: React.FC = () => {
     const isUpdate = !!currentBooking;
     const url = isUpdate ? `${API}/bookings/update` : `${API}/bookings/create`;
     const method = isUpdate ? "PUT" : "POST";
-    const params = new URLSearchParams(formData).toString();
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const params = new URLSearchParams(cleaned as Record<string, string>).toString();
 
     try {
       const res = await fetch(`${url}?${params}`, { method });
@@ -91,7 +94,7 @@ const BookingsTab: React.FC = () => {
       <table>
         <thead>
           <tr>
-            <th>Select</th><th>Booking ID</th><th>Facility ID</th><th>Aadhaar No</th>
+            <th>Select</th><th>Booking ID</th><th>Facility ID</th><th>Customer ID</th>
             <th>Employee ID</th><th>Date Time</th><th>Payment Status</th><th>Actions</th>
           </tr>
         </thead>
@@ -100,7 +103,7 @@ const BookingsTab: React.FC = () => {
             <tr key={i} className={currentBooking?.booking_id === b.booking_id ? "selected-row" : ""}
               onClick={() => setCurrentBooking(b)}>
               <td><input type="radio" name="selectedBooking" checked={currentBooking?.booking_id === b.booking_id} onChange={() => setCurrentBooking(b)} /></td>
-              <td>{b.booking_id}</td><td>{b.facility_id}</td><td>{b.aadhaar_no}</td>
+              <td>{b.booking_id}</td><td>{b.facility_id}</td><td>{b.customer_id}</td>
               <td>{b.employee_id}</td><td>{new Date(b.date_time).toLocaleString()}</td>
               <td>{b.payment_status}</td>
               <td className="actions-cell">
@@ -169,7 +172,7 @@ const BookingsTab: React.FC = () => {
             <form onSubmit={handleSubmit}>
               {currentBooking && <div className="form-group"><label>Booking ID</label><input type="text" value={formData.booking_id} disabled /></div>}
               <div className="form-group"><label>Facility ID</label><input type="text" value={formData.facility_id} onChange={(e) => setFormData({ ...formData, facility_id: e.target.value })} required /></div>
-              <div className="form-group"><label>Aadhaar No</label><input type="text" value={formData.aadhaar_no} onChange={(e) => setFormData({ ...formData, aadhaar_no: e.target.value })} required /></div>
+              <div className="form-group"><label>Customer ID</label><input type="text" value={formData.customer_id} onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })} required /></div>
               <div className="form-group"><label>Employee ID</label><input type="text" value={formData.employee_id} onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })} required /></div>
               <div className="form-group"><label>Date Time</label><input type="datetime-local" value={formData.date_time} onChange={(e) => setFormData({ ...formData, date_time: e.target.value })} /></div>
               <div className="form-group">

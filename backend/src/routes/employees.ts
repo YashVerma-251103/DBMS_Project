@@ -40,7 +40,7 @@ router.get('/multiple-bookings', async (_req: Request, res: Response) => {
 
 router.post('/insert', async (req: Request, res: Response) => {
   try {
-    const { name, role, shift_timings } = req.query as Record<string, string>;
+    const { name, role, department, shift_timings } = req.query as Record<string, string>;
 
     if (!name || !role) {
       res.status(400).json({ error: 'name and role are required' });
@@ -48,8 +48,8 @@ router.post('/insert', async (req: Request, res: Response) => {
     }
 
     await pool.query(
-      'INSERT INTO employee (name, role, shift_timings) VALUES ($1, $2, $3)',
-      [name, role, shift_timings || null]
+      'INSERT INTO employee (name, role, department, shift_timings) VALUES ($1, $2, $3, $4)',
+      [name, role, department || null, shift_timings || null]
     );
     res.json({ status: 'success', message: 'Employee inserted successfully' });
   } catch (err) {
@@ -59,7 +59,7 @@ router.post('/insert', async (req: Request, res: Response) => {
 
 router.put('/update', async (req: Request, res: Response) => {
   try {
-    const { employee_id, name, role, shift_timings } = req.query as Record<string, string>;
+    const { employee_id, name, role, department, shift_timings } = req.query as Record<string, string>;
 
     if (!employee_id) {
       res.status(400).json({ error: 'employee_id is required' });
@@ -71,6 +71,7 @@ router.put('/update', async (req: Request, res: Response) => {
 
     if (name !== undefined) { values.push(name); setClauses.push(`name = $${values.length}`); }
     if (role !== undefined) { values.push(role); setClauses.push(`role = $${values.length}`); }
+    if (department !== undefined) { values.push(department); setClauses.push(`department = $${values.length}`); }
     if (shift_timings !== undefined) { values.push(shift_timings); setClauses.push(`shift_timings = $${values.length}`); }
 
     if (setClauses.length === 0) {
@@ -83,6 +84,14 @@ router.put('/update', async (req: Request, res: Response) => {
       `UPDATE employee SET ${setClauses.join(', ')} WHERE employee_id = $${values.length}`,
       values
     );
+
+    // Keep the linked login's dashboard-tier role in sync with Employee.Role, using the same
+    // Manager-vs-everyone-else derivation POST /users/provision-staff uses at creation time.
+    if (role !== undefined) {
+      const dashboardRole = role === 'Manager' ? 'manager' : 'employee';
+      await pool.query('UPDATE users SET role = $1 WHERE employee_id = $2', [dashboardRole, employee_id]);
+    }
+
     res.json({ message: 'Employee updated successfully' });
   } catch (err) {
     res.status(500).json({ error: String(err) });

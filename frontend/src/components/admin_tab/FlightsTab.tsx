@@ -6,6 +6,7 @@ import { Flight } from "../../types";
 const API = "http://localhost:5000";
 
 const emptyFlight: Omit<Flight, "flight_number"> & { flight_number: string } = {
+  flight_id: 0,
   flight_number: "",
   airline: "",
   departure_time: "",

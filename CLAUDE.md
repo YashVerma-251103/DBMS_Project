@@ -8,6 +8,29 @@ Use skills proactively:
 - `/ponytail` when weighing architecture or dependency choices
 - `/code-review` before declaring a feature done
 
+## Git workflow
+- Micro-commit: one logical change per commit (e.g. "data consolidation", "error fallback",
+  "docs"), not one big commit per task. Keeps rollback of a single piece cheap without
+  touching the others.
+- Branch-per-experiment: when trying something new or uncertain (a refactor, an unproven
+  pattern, a risky fix), create a feature branch first, commit there, and only merge back
+  into the working branch once it's verified working (typecheck + manual/functional check).
+
+## Documentation
+- `users/admin.md`, `users/manager.md`, `users/employee.md`, `users/customer.md` are the
+  living reference for what each role can actually do — full flow, capabilities, and known
+  quirks/gotchas. When a change affects what a role sees or can do (a new tab, a changed
+  field, a fixed or newly-discovered bug in a dashboard, a routing change), update the
+  relevant file(s) in the same piece of work, not as a follow-up. Don't let these drift into
+  a second source of truth that contradicts the code.
+- The root `README.md` (architecture, schema, API endpoints, setup) gets the same treatment
+  for anything that changes the tech shape of the system — a new table/migration, a new
+  route, a changed auth/routing model.
+- `RestructuringPlans/*.md` are historical planning docs, not living specs — don't rewrite
+  them to match current behavior. If one goes stale relative to what actually got built, add
+  a short status note at the top pointing to the real source (a specific Implementation.md
+  decision, or the `users/` docs) rather than editing the historical content itself.
+
 ## Stack (don't re-read README for this)
 | Layer | What |
 |---|---|

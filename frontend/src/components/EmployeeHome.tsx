@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser, FaCalendarAlt, FaSignOutAlt, FaEdit } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaCalendarAlt, FaSignOutAlt, FaEdit, FaHome } from 'react-icons/fa';
 import { MdBusiness } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
 
@@ -13,9 +13,9 @@ const entityLabels: Record<string, string> = {
 };
 
 const entitySchemas: Record<string, { fields: { name: string; type: string; editable: boolean }[]; endpoint: string }> = {
-  profile:  { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'text', editable: false }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
+  profile:  { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'text', editable: false }, { name: 'Department', type: 'text', editable: false }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
   facility: { fields: [{ name: 'Facility_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: false }, { name: 'Type', type: 'text', editable: false }, { name: 'Location', type: 'text', editable: false }, { name: 'Contact_No', type: 'tel', editable: false }, { name: 'Opening_Hours', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }], endpoint: 'facilities/search' },
-  bookings: { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Payment_Status', type: 'text', editable: false }], endpoint: 'bookings/search' },
+  bookings: { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Payment_Status', type: 'text', editable: false }], endpoint: 'bookings/search' },
 };
 
 const EmployeeHome: React.FC = () => {
@@ -28,8 +28,10 @@ const EmployeeHome: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [logoutHov, setLogoutHov] = useState(false);
+  const [backHov, setBackHov] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
   useEffect(() => { fetchData(); }, [activeTab]);
 
@@ -38,7 +40,10 @@ const EmployeeHome: React.FC = () => {
     try {
       const schema = entitySchemas[activeTab];
       if (schema?.endpoint) {
-        const res = await fetch(`http://localhost:5000/${schema.endpoint}`);
+        const url = activeTab === 'profile'
+          ? `http://localhost:5000/${schema.endpoint}?employee_id=${currentUser?.employeeId}`
+          : `http://localhost:5000/${schema.endpoint}`;
+        const res = await fetch(url);
         const result = await res.json();
         setData(Array.isArray(result) ? result : [result]);
       }
@@ -107,12 +112,15 @@ const EmployeeHome: React.FC = () => {
         <div className="form-content">
           <h2>Edit Profile</h2>
           <form onSubmit={handleSubmit}>
-            {schema.fields.filter(f => f.editable).map(field => (
-              <div key={field.name} className="form-group">
-                <label>{field.name.replace(/_/g, ' ')}</label>
-                <input type={field.type} name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} />
-              </div>
-            ))}
+            {schema.fields.filter(f => f.editable).map(field => {
+              const key = field.name.toLowerCase();
+              return (
+                <div key={field.name} className="form-group">
+                  <label>{field.name.replace(/_/g, ' ')}</label>
+                  <input type={field.type} name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} />
+                </div>
+              );
+            })}
             <div className="form-actions">
               <button type="submit" className="btn-primary">Save</button>
               <button type="button" onClick={() => setEditMode(false)} className="btn-secondary">Cancel</button>
@@ -150,6 +158,14 @@ const EmployeeHome: React.FC = () => {
       <nav style={dash.sidebar(isMobile, sidebarOpen)}>
         <div style={dash.sidebarHead}>
           <h2 style={dash.sidebarH2}>Employee Portal</h2>
+          <button
+            style={dash.backLink(backHov)}
+            onMouseEnter={() => setBackHov(true)}
+            onMouseLeave={() => setBackHov(false)}
+            onClick={() => navigate('/')}
+          >
+            <FaHome size={13} /> Back to Landing
+          </button>
         </div>
         <div style={dash.sidebarBody}>
           <ul style={dash.navList}>
@@ -170,7 +186,7 @@ const EmployeeHome: React.FC = () => {
             <div style={dash.profileRow}>
               <div style={dash.avatar}><FaUser size={20} /></div>
               <div style={dash.profileMeta}>
-                <span style={dash.profileName}>Employee User</span>
+                <span style={dash.profileName}>{currentUser?.name || 'Employee User'}</span>
                 <span style={dash.profileRole}>Staff</span>
               </div>
             </div>
@@ -178,7 +194,7 @@ const EmployeeHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={() => { localStorage.removeItem('currentUser'); navigate('/', { replace: true }); }}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

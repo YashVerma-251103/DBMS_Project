@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaEdit, FaSignOutAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaEdit, FaSignOutAlt, FaHome } from 'react-icons/fa';
 import { MdPeople, MdBusiness, MdEvent, MdFeedback, MdAttachMoney, MdInventory, MdSchedule } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
+import { EMPLOYEE_ROLES, DEPARTMENTS } from '../types';
 
 interface FieldDef { name: string; type: string; editable: boolean; options?: string[]; }
 interface SchemaDef { fields: FieldDef[]; endpoint: string; }
@@ -19,11 +20,12 @@ const entityLabels: Record<string, string> = {
 
 const entitySchemas: Record<string, SchemaDef> = {
   facility:       { fields: [{ name: 'Facility_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Type', type: 'select', options: ['Gym','Lounge','Restaurant','Shop','Other'], editable: true }, { name: 'Location', type: 'text', editable: true }, { name: 'Contact_No', type: 'tel', editable: true }, { name: 'Opening_Hours', type: 'text', editable: true }, { name: 'Manager_Id', type: 'number', editable: false }], endpoint: 'facilities/search' },
-  employees:      { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'select', options: ['Staff','Technician','Cleaner','Security'], editable: true }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
-  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
-  feedback:       { fields: [{ name: 'Feedback_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Aadhaar_No', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Rating', type: 'number', editable: false }, { name: 'Comments', type: 'text', editable: false }], endpoint: 'feedback/search' },
+  employees:      { fields: [{ name: 'Employee_Id', type: 'number', editable: false }, { name: 'Name', type: 'text', editable: true }, { name: 'Role', type: 'select', options: EMPLOYEE_ROLES, editable: true }, { name: 'Department', type: 'select', options: DEPARTMENTS, editable: true }, { name: 'Shift_Timings', type: 'text', editable: true }], endpoint: 'employees/search' },
+  bookings:       { fields: [{ name: 'Booking_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Customer_Id', type: 'text', editable: true }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Date_Time', type: 'datetime-local', editable: true }, { name: 'Payment_Status', type: 'select', options: ['Pending','Completed','Cancelled'], editable: true }], endpoint: 'bookings/search' },
+  feedback:       { fields: [{ name: 'Feedback_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Customer_Id', type: 'text', editable: false }, { name: 'Manager_Id', type: 'number', editable: false }, { name: 'Date_Time', type: 'datetime-local', editable: false }, { name: 'Rating', type: 'number', editable: false }, { name: 'Comments', type: 'text', editable: false }], endpoint: 'feedback/search' },
   revenue:        { fields: [{ name: 'Financial_Year', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Avg_Revenue', type: 'number', editable: false }], endpoint: 'revenue/calculate_avg' },
-  staff_schedule: { fields: [{ name: 'Schedule_Id', type: 'number', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Facility_Id', type: 'number', editable: false }, { name: 'Shift_Date', type: 'date', editable: true }, { name: 'Shift_Start', type: 'time', editable: true }, { name: 'Shift_End', type: 'time', editable: true }, { name: 'Task_Description', type: 'text', editable: true }], endpoint: 'staff_schedule/search' },
+  inventory:      { fields: [{ name: 'Inventory_Id', type: 'number', editable: false }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Item_Name', type: 'text', editable: true }, { name: 'Quantity', type: 'number', editable: true }, { name: 'Price', type: 'number', editable: true }, { name: 'Supplier', type: 'text', editable: true }], endpoint: 'inventory/search' },
+  staff_schedule: { fields: [{ name: 'Schedule_Id', type: 'number', editable: false }, { name: 'Employee_Id', type: 'number', editable: true }, { name: 'Facility_Id', type: 'number', editable: true }, { name: 'Shift_Date', type: 'date', editable: true }, { name: 'Shift_Start', type: 'time', editable: true }, { name: 'Shift_End', type: 'time', editable: true }, { name: 'Task_Description', type: 'text', editable: true }], endpoint: 'staff_schedule/search' },
 };
 
 const ManagerHome: React.FC = () => {
@@ -36,8 +38,18 @@ const ManagerHome: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [logoutHov, setLogoutHov] = useState(false);
+  const [backHov, setBackHov] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+
+  // RequireAuth already guarantees a valid manager session by the time this renders.
+  let currentUser: { name?: string } | null = null;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { currentUser = null; }
+
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
+    navigate('/', { replace: true });
+  };
 
   useEffect(() => { fetchData(); }, [activeTab]);
 
@@ -59,7 +71,8 @@ const ManagerHome: React.FC = () => {
     const schema = entitySchemas[activeTab];
     if (!schema) return;
     const base = schema.endpoint.split('/')[0];
-    const params = new URLSearchParams(formData).toString();
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const params = new URLSearchParams(cleaned as Record<string, string>).toString();
     const method = currentItem ? 'PUT' : 'POST';
     const action = currentItem ? 'update' : 'insert';
     try {
@@ -78,15 +91,16 @@ const ManagerHome: React.FC = () => {
           <form onSubmit={handleSubmit}>
             {schema.fields.map(field => {
               if (!field.editable && !currentItem) return null;
+              const key = field.name.toLowerCase();
               return (
                 <div key={field.name} className="form-group">
                   <label>{field.name.replace(/_/g, ' ')}</label>
                   {field.type === 'select' ? (
-                    <select name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} disabled={!field.editable}>
+                    <select name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} disabled={!field.editable}>
                       {field.options?.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : (
-                    <input type={field.type} name={field.name} value={formData[field.name] || ''} onChange={e => setFormData({ ...formData, [field.name]: e.target.value })} disabled={!field.editable} />
+                    <input type={field.type} name={field.name} value={formData[key] || ''} onChange={e => setFormData({ ...formData, [key]: e.target.value })} disabled={!field.editable} />
                   )}
                 </div>
               );
@@ -111,7 +125,15 @@ const ManagerHome: React.FC = () => {
         <div className="table-header">
           <h3>{(entityLabels[activeTab] || activeTab).toUpperCase()} MANAGEMENT</h3>
           {activeTab !== 'revenue' && activeTab !== 'facility' && activeTab !== 'feedback' && (
-            <button onClick={() => { setEditMode(true); setCurrentItem(null); setFormData({}); }} className="btn-primary">Create New</button>
+            <button onClick={() => {
+              setEditMode(true); setCurrentItem(null);
+              // A <select> with no matching value still visually shows its first <option> (browser
+              // default), but React's state stays empty until the user touches it — pre-seed
+              // defaults so what's submitted matches what's already shown.
+              const defaults: Record<string, string> = {};
+              schema.fields.forEach(f => { if (f.type === 'select' && f.options?.length) defaults[f.name.toLowerCase()] = f.options[0]; });
+              setFormData(defaults);
+            }} className="btn-primary">Create New</button>
           )}
         </div>
         <div className="table-responsive">
@@ -149,6 +171,14 @@ const ManagerHome: React.FC = () => {
       <nav style={dash.sidebar(isMobile, sidebarOpen)}>
         <div style={dash.sidebarHead}>
           <h2 style={dash.sidebarH2}>Manager Portal</h2>
+          <button
+            style={dash.backLink(backHov)}
+            onMouseEnter={() => setBackHov(true)}
+            onMouseLeave={() => setBackHov(false)}
+            onClick={() => navigate('/')}
+          >
+            <FaHome size={13} /> Back to Landing
+          </button>
         </div>
         <div style={dash.sidebarBody}>
           <ul style={dash.navList}>
@@ -169,7 +199,7 @@ const ManagerHome: React.FC = () => {
             <div style={dash.profileRow}>
               <div style={dash.avatar}><MdPeople size={22} /></div>
               <div style={dash.profileMeta}>
-                <span style={dash.profileName}>Manager User</span>
+                <span style={dash.profileName}>{currentUser?.name || 'Manager User'}</span>
                 <span style={dash.profileRole}>Facility Manager</span>
               </div>
             </div>
@@ -177,7 +207,7 @@ const ManagerHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/LoginSignUp', { replace: true })}
+              onClick={handleLogout}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

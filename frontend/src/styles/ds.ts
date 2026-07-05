@@ -339,12 +339,14 @@ export const landing = {
   } as CSSProperties,
 };
 
+// Mirrors Landing's colors/gradient direction (styles/ds.ts's own `colors`/`landing`
+// tokens above) so the dashboards read as the same product, not a bolted-on admin panel.
 export const dash = {
   wrapper: {
     display: 'flex',
     minHeight: '100vh',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    backgroundColor: '#f5f9fc',
+    background: 'linear-gradient(180deg, #eaf4fd 0%, #ffffff 480px)',
     position: 'relative',
     overflowX: 'hidden',
   } as CSSProperties,
@@ -353,7 +355,7 @@ export const dash = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
     height: 60,
-    backgroundColor: P,
+    background: `linear-gradient(135deg, ${colors.primaryDark}, ${colors.primary})`,
     color: '#fff',
     zIndex: 1000,
     padding: '0 15px',
@@ -382,7 +384,7 @@ export const dash = {
 
   sidebar: (mobile: boolean, open: boolean): CSSProperties => ({
     width: W,
-    backgroundColor: '#003366',
+    background: `linear-gradient(180deg, ${colors.primaryDark}, ${colors.primary})`,
     color: '#fff',
     position: 'fixed',
     height: '100vh',
@@ -433,13 +435,15 @@ export const dash = {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    borderLeft: active ? '4px solid #00a0e9' : '4px solid transparent',
+    // Orange accent against the blue sidebar (same accent/primary pairing as Landing's
+    // buttons) reads more clearly than a blue-on-blue active state would.
+    borderLeft: active ? `4px solid ${colors.accent}` : '4px solid transparent',
     backgroundColor: active
-      ? 'rgba(0,86,179,0.65)'
+      ? 'rgba(255,255,255,0.18)'
       : hovered
-      ? 'rgba(0,86,179,0.28)'
+      ? 'rgba(255,255,255,0.09)'
       : 'transparent',
-    fontWeight: active ? 600 : 400,
+    fontWeight: active ? 700 : 500,
     color: '#fff',
     fontSize: '0.9rem',
     transition: 'background-color 0.18s',
@@ -482,14 +486,15 @@ export const dash = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
-    background: hovered ? 'rgba(255,255,255,0.12)' : 'none',
+    background: hovered ? 'rgba(255,255,255,0.14)' : 'none',
     border: 'none',
     color: '#fff',
     width: '100%',
     padding: '10px 12px',
-    borderRadius: 4,
+    borderRadius: 8,
     cursor: 'pointer',
     fontSize: '0.88rem',
+    fontWeight: 600,
     transition: 'background 0.18s',
     fontFamily: 'inherit',
   }),
@@ -498,7 +503,7 @@ export const dash = {
     flex: 1,
     marginLeft: mobile ? 0 : W,
     minHeight: '100vh',
-    backgroundColor: '#f5f9fc',
+    background: 'linear-gradient(180deg, #eaf4fd 0%, #ffffff 480px)',
     padding: mobile ? '72px 16px 24px' : '28px 30px',
     transition: 'margin-left 0.3s',
     boxSizing: 'border-box',

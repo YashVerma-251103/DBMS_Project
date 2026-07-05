@@ -186,7 +186,7 @@ const EmployeeHome: React.FC = () => {
             <div style={dash.profileRow}>
               <div style={dash.avatar}><FaUser size={20} /></div>
               <div style={dash.profileMeta}>
-                <span style={dash.profileName}>Employee User</span>
+                <span style={dash.profileName}>{currentUser?.name || 'Employee User'}</span>
                 <span style={dash.profileRole}>Staff</span>
               </div>
             </div>
@@ -194,7 +194,7 @@ const EmployeeHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/login', { replace: true })}
+              onClick={() => { localStorage.removeItem('currentUser'); navigate('/', { replace: true }); }}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

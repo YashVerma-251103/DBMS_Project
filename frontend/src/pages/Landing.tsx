@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaPlaneDeparture, FaCouch, FaMapMarkedAlt, FaStore, FaCalendarCheck, FaClipboardList, FaCommentDots, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import SearchFlights from './SearchFlights';
 import LoungeSection from '../components/landing/LoungeSection';
@@ -7,6 +7,7 @@ import NavigationSection from '../components/landing/NavigationSection';
 import InventorySection from '../components/landing/InventorySection';
 import MyBookings from '../components/landing/MyBookings';
 import ReportIssue from '../components/landing/ReportIssue';
+import LoginSignUp from '../components/LoginSignUp';
 import { landing, colors, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
 import { AIRPORT } from '../config/airport';
 import { DASHBOARD_PATH } from '../types';
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const scrolled = useScrolled();
   const light = !scrolled;
@@ -54,6 +56,10 @@ const Landing: React.FC = () => {
   const [loginHov, setLoginHov] = useState(false);
   const [signupHov, setSignupHov] = useState(false);
   const [logoutHov, setLogoutHov] = useState(false);
+  // /login is still a real, bookmarkable/linkable route — it renders this same page with
+  // the modal auto-opened, rather than a separate page, so RequireAuth's redirect and any
+  // existing links to /login keep working without a special case anywhere else.
+  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(location.pathname === '/login' ? 'login' : null);
 
   useEffect(() => {
     try { setCurrentUser(JSON.parse(localStorage.getItem('currentUser') || 'null')); }
@@ -126,7 +132,7 @@ const Landing: React.FC = () => {
                 <button
                   onMouseEnter={() => setLoginHov(true)}
                   onMouseLeave={() => setLoginHov(false)}
-                  onClick={() => navigate('/login')}
+                  onClick={() => setAuthModal('login')}
                   style={landing.ctaGhost(loginHov, light)}
                 >
                   Login
@@ -134,7 +140,7 @@ const Landing: React.FC = () => {
                 <button
                   onMouseEnter={() => setSignupHov(true)}
                   onMouseLeave={() => setSignupHov(false)}
-                  onClick={() => navigate('/login')}
+                  onClick={() => setAuthModal('signup')}
                   style={landing.ctaPrimary(signupHov)}
                 >
                   Sign Up
@@ -297,7 +303,7 @@ const Landing: React.FC = () => {
                     <div style={{ ...iconBadge(card.color), margin: '0 auto 16px' }}>{card.icon}</div>
                     <h4 style={{ margin: '0 0 8px' }}>{card.title}</h4>
                     <p style={{ margin: '0 0 18px', fontSize: '0.88rem', color: colors.inkMuted, lineHeight: 1.5 }}>{card.body}</p>
-                    <button onClick={() => navigate('/login')} className="cta-primary-hover" style={landing.ctaPrimary(false)}>Sign In</button>
+                    <button onClick={() => setAuthModal('login')} className="cta-primary-hover" style={landing.ctaPrimary(false)}>Sign In</button>
                   </div>
                 </Reveal>
               ))}
@@ -310,6 +316,18 @@ const Landing: React.FC = () => {
       <footer style={landing.footer}>
         &copy; {new Date().getFullYear()} {AIRPORT.footerText}
       </footer>
+
+      {authModal && (
+        <LoginSignUp
+          initialTab={authModal}
+          onClose={() => setAuthModal(null)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user as CurrentUser);
+            setAuthModal(null);
+            if (location.pathname === '/login') navigate('/', { replace: true });
+          }}
+        />
+      )}
     </div>
   );
 };

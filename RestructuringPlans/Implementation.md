@@ -51,14 +51,24 @@ check-in, complaints).
    the project via an access token (new tooling + account setup). A ~25-line script using
    the already-installed `pg` package fully solves "stop hand-pasting SQL into the
    Supabase editor" with less new surface area.
-8. **Customer post-login experience is the Landing page, not a separate dashboard.**
-   Admin/Manager/Employee keep distinct sidebar dashboards (they're doing operational
-   CRUD work). Customers are browsing/booking, so logging in enhances the same page they
-   were already on — booking buttons appear on flight/lounge search results, and the
-   "what you get" teaser cards become real widgets (My Bookings — with check-in folded
-   in as a per-row action, Report an Issue) — instead of redirecting to a
-   differently-laid-out `CustomerHome`. `CustomerHome` is removed;
-   `DASHBOARD_PATH.customer` points at `/`.
+8. **Landing is the universal post-login home for every role, not just customers.**
+   Originally scoped to customers only (logging in enhances the same page they were
+   already on — booking buttons appear on flight/lounge search results, and the "what
+   you get" teaser cards become real widgets: My Bookings with check-in folded in as a
+   per-row action, Report an Issue — instead of redirecting to a differently-laid-out
+   `CustomerHome`, which is removed). Later expanded to Admin/Manager/Employee too: login
+   always redirects to `/` regardless of role, and Landing shows a role-aware hub section
+   ("Welcome back, {name}" + a CTA into their own dashboard) instead of auto-redirecting
+   straight past it. Admin/Manager/Employee still keep their own distinct sidebar
+   dashboards as separate routes — they're dense operational CRUD work (managing dozens
+   of flights/employees/incidents across ~10 entity types) that doesn't fit a scrolling
+   consumer page — but those dashboards were redesigned to match Landing's visual
+   language (gradient sidebar, same button/card/color system) so the whole app reads as
+   one product instead of a consumer site bolted to an unrelated admin panel. A
+   mismatched-role access attempt (e.g. a customer hitting `/AdminHome` directly) now
+   bounces to `/` instead of a per-role dashboard lookup, since Landing is always the
+   right fallback. `DASHBOARD_PATH` keeps its per-role dashboard routes (used by the hub
+   CTA) but no longer drives the post-login redirect itself.
 
 ---
 

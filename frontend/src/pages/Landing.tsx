@@ -6,6 +6,7 @@ import LoungeSection from '../components/landing/LoungeSection';
 import NavigationSection from '../components/landing/NavigationSection';
 import InventorySection from '../components/landing/InventorySection';
 import MyBookings from '../components/landing/MyBookings';
+import ReportIssue from '../components/landing/ReportIssue';
 import { landing, colors, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
 import { AIRPORT } from '../config/airport';
 
@@ -238,12 +239,12 @@ const Landing: React.FC = () => {
                 </div>
               </Reveal>
               <Reveal delay={120}>
-                <div style={{ ...landing.glassCard, padding: 24, opacity: 0.7 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                <div style={{ ...landing.glassCard, padding: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                     <div style={iconBadge(colors.teal)}><FaCommentDots size={20} /></div>
                     <h4 style={{ margin: 0 }}>Report an Issue</h4>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: colors.inkMuted }}>Coming soon.</p>
+                  {currentUser?.customerId ? <ReportIssue customerId={currentUser.customerId} /> : null}
                 </div>
               </Reveal>
             </div>

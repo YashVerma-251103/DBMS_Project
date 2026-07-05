@@ -7,7 +7,7 @@ const API = "http://localhost:5000";
 const STATUSES = ["Reported","In Progress","Resolved"];
 
 const IncidentTab: React.FC = () => {
-  const [searchParams, setSearchParams] = useState({ incident_id: "", facility_id: "", reported_by: "", status: "" });
+  const [searchParams, setSearchParams] = useState({ incident_id: "", facility_id: "", reported_by: "", reported_by_customer_id: "", status: "" });
   const [searchResults, setSearchResults] = useState<Incident[]>([]);
   const [data, setData] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,10 +34,14 @@ const IncidentTab: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!!formData.reported_by === !!formData.reported_by_customer_id) {
+      alert("Exactly one of Reported By (Employee) or Reported By (Customer) is required.");
+      return;
+    }
     const isUpdate = !!currentIncident;
     const url = isUpdate ? `${API}/incidents/update` : `${API}/incidents/insert`;
     const method = isUpdate ? "PUT" : "POST";
-    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined));
+    const cleaned = Object.fromEntries(Object.entries(formData).filter(([, v]) => v !== null && v !== undefined && v !== ""));
     const params = new URLSearchParams(cleaned as Record<string, string>).toString();
     try {
       const res = await fetch(`${url}?${params}`, { method });
@@ -55,12 +59,14 @@ const IncidentTab: React.FC = () => {
   const renderTable = (incidents: Incident[]) => (
     <div className="table-responsive">
       <table>
-        <thead><tr><th>Select</th><th>ID</th><th>Facility ID</th><th>Reported By</th><th>Description</th><th>Status</th><th>Reported At</th><th>Resolved At</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Select</th><th>ID</th><th>Facility ID</th><th>Reported By</th><th>Assigned To</th><th>Description</th><th>Status</th><th>Reported At</th><th>Resolved At</th><th>Actions</th></tr></thead>
         <tbody>
           {incidents.map((inc, i) => (
             <tr key={i} className={currentIncident?.incident_id === inc.incident_id ? "selected-row" : ""} onClick={() => setCurrentIncident(inc)}>
               <td><input type="radio" name="selectedIncident" checked={currentIncident?.incident_id === inc.incident_id} onChange={() => setCurrentIncident(inc)} /></td>
-              <td>{inc.incident_id}</td><td>{inc.facility_id}</td><td>{inc.reported_by}</td>
+              <td>{inc.incident_id}</td><td>{inc.facility_id}</td>
+              <td>{inc.reported_by ? `Employee #${inc.reported_by}` : inc.reported_by_customer_id ? `Customer #${inc.reported_by_customer_id}` : "—"}</td>
+              <td>{inc.assigned_to ?? "—"}</td>
               <td className="description-cell">{inc.description}</td><td>{inc.status}</td>
               <td>{new Date(inc.reported_at).toLocaleString()}</td>
               <td>{inc.resolved_at ? new Date(inc.resolved_at).toLocaleString() : "N/A"}</td>
@@ -81,7 +87,7 @@ const IncidentTab: React.FC = () => {
         <h3>INCIDENT MANAGEMENT</h3>
         <div className="action-buttons">
           <button onClick={() => { if (currentIncident) { setEditMode(true); setFormData({ ...currentIncident, reported_at: currentIncident.reported_at?.slice(0,16), resolved_at: currentIncident.resolved_at?.slice(0,16) ?? "" }); } }} className="btn-update" disabled={!currentIncident}><FaEdit /> Update Selected</button>
-          <button onClick={() => { setEditMode(true); setCurrentIncident(null); setFormData({ facility_id: "", reported_by: "", description: "", status: "Reported", reported_at: new Date().toISOString().slice(0,16), resolved_at: "" }); }} className="btn-primary"><FaPlus /> Add Incident</button>
+          <button onClick={() => { setEditMode(true); setCurrentIncident(null); setFormData({ facility_id: "", reported_by: "", reported_by_customer_id: "", assigned_to: "", description: "", status: "Reported", reported_at: new Date().toISOString().slice(0,16), resolved_at: "" }); }} className="btn-primary"><FaPlus /> Add Incident</button>
         </div>
       </div>
 
@@ -91,6 +97,7 @@ const IncidentTab: React.FC = () => {
           <div className="form-group"><label>Incident ID:</label><input type="text" value={searchParams.incident_id} onChange={(e) => setSearchParams({ ...searchParams, incident_id: e.target.value })} /></div>
           <div className="form-group"><label>Facility ID:</label><input type="text" value={searchParams.facility_id} onChange={(e) => setSearchParams({ ...searchParams, facility_id: e.target.value })} /></div>
           <div className="form-group"><label>Reported By (Employee ID):</label><input type="text" value={searchParams.reported_by} onChange={(e) => setSearchParams({ ...searchParams, reported_by: e.target.value })} /></div>
+          <div className="form-group"><label>Reported By (Customer ID):</label><input type="text" value={searchParams.reported_by_customer_id} onChange={(e) => setSearchParams({ ...searchParams, reported_by_customer_id: e.target.value })} /></div>
           <div className="form-group">
             <label>Status:</label>
             <select value={searchParams.status} onChange={(e) => setSearchParams({ ...searchParams, status: e.target.value })}>
@@ -119,7 +126,10 @@ const IncidentTab: React.FC = () => {
             <form onSubmit={handleSubmit}>
               {currentIncident && <div className="form-group"><label>Incident ID</label><input type="text" value={formData.incident_id} disabled /></div>}
               <div className="form-group"><label>Facility ID</label><input type="text" value={formData.facility_id} onChange={(e) => setFormData({ ...formData, facility_id: e.target.value })} required /></div>
-              <div className="form-group"><label>Reported By (Employee ID)</label><input type="text" value={formData.reported_by} onChange={(e) => setFormData({ ...formData, reported_by: e.target.value })} required /></div>
+              <p style={{ fontSize: "0.85rem", color: "#666", margin: "4px 0" }}>Exactly one reporter — filling one clears the other.</p>
+              <div className="form-group"><label>Reported By (Employee ID)</label><input type="text" value={formData.reported_by || ""} onChange={(e) => setFormData({ ...formData, reported_by: e.target.value, reported_by_customer_id: e.target.value ? "" : formData.reported_by_customer_id })} /></div>
+              <div className="form-group"><label>Reported By (Customer ID)</label><input type="text" value={formData.reported_by_customer_id || ""} onChange={(e) => setFormData({ ...formData, reported_by_customer_id: e.target.value, reported_by: e.target.value ? "" : formData.reported_by })} /></div>
+              <div className="form-group"><label>Assigned To (Employee ID, optional — defaults to the facility's manager)</label><input type="text" value={formData.assigned_to || ""} onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })} /></div>
               <div className="form-group"><label>Description</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required /></div>
               <div className="form-group"><label>Status</label><select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} required>{STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
               <div className="form-group"><label>Reported At</label><input type="datetime-local" value={formData.reported_at} onChange={(e) => setFormData({ ...formData, reported_at: e.target.value })} required /></div>

@@ -17,7 +17,7 @@ update the status markers as work lands.
 | 7 | Incident/complaint extension (UI) | ⏳ Pending (Landing's "Report an Issue" widget is a placeholder) |
 | 8 | Flight/lounge booking confirmation UI | ✅ Done (folded into Step 5 — see below) |
 | 9 | Check-in tab | ✅ Done (folded into My Bookings — see below) |
-| 10 | Admin staff-provisioning UI | ⏳ Pending |
+| 10 | Admin staff-provisioning UI | ✅ Done |
 
 Branch: `restructure-impl`. Everything in steps 1–4 has been run against the live Supabase
 DB and verified (curl + browser), not just written.
@@ -461,6 +461,19 @@ one file still using the old 6-value inline array).
    confirmed `checked_in` flipped to `true` via the API and the button correctly
    disappeared from the UI afterward. Lounge bookings correctly show no check-in option
    (guarded on `flight_id`).
-7. Staff provisioning UI: create a new staff member with a Department from the admin UI,
-   confirm the generated `loginId` logs in and lands on `EmployeeHome` with Department
-   visible on the profile tab.
+7. ~~Staff provisioning UI: create a new staff member with a Department from the admin
+   UI, confirm the generated `loginId` logs in and lands on `EmployeeHome` with
+   Department visible on the profile tab.~~ Done and **verified live**: `EmployeeTab.tsx`'s
+   Create form now collects `contact_number`/`initial_password` and the admin's own
+   credentials, posts to `POST /users/provision-staff` (JSON body, not query string —
+   it carries a password). Tested end-to-end as the real seeded admin: created "Live
+   Test Staff", got back `Login ID: 9998887777_manager`, confirmed the new credentials
+   log in successfully via `POST /users/login`. Editing an existing employee still goes
+   through the plain `PUT /employees/update` (unaffected). Role/Department `<select>`
+   options now pull from the shared `EMPLOYEE_ROLES`/`DEPARTMENTS` constants instead of
+   the old 6-value inline array; Department column added to the table.
+   **Side finding**: deleting an employee (`DELETE /employees/delete`) does not delete
+   their `users` login row — the FK is `ON DELETE SET NULL`, not `CASCADE`, so it
+   orphans a still-functional login with a null `employee_id`. Not fixed (no route
+   currently deletes `users` rows at all; adding one is out of scope here), just noting
+   it since it surfaced during verification.

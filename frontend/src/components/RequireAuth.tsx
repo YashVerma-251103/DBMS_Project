@@ -1,6 +1,5 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { DASHBOARD_PATH } from '../types';
 
 interface RequireAuthProps {
   role: string;
@@ -12,7 +11,10 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ role, children }) => {
   try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { currentUser = null; }
 
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (currentUser.role !== role) return <Navigate to={DASHBOARD_PATH[currentUser.role] || '/login'} replace />;
+  // Landing ('/') is the universal home for every role — a mismatched-role access
+  // attempt (e.g. a customer hitting /AdminHome directly) bounces there instead of a
+  // per-role dashboard lookup, since Landing is always the right fallback now.
+  if (currentUser.role !== role) return <Navigate to="/" replace />;
 
   return children;
 };

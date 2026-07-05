@@ -63,7 +63,7 @@ const LoungeSection: React.FC<Props> = ({ customerId }) => {
               {bookingId === l.facility_id ? 'Booking…' : 'Book This Lounge'}
             </button>
           ) : (
-            <span style={{ fontSize: '0.8rem', color: colors.inkMuted, fontStyle: 'italic' }}>Sign in to book</span>
+            <span style={{ fontSize: '0.8rem', color: colors.inkMuted, fontStyle: 'italic' }}>Sign in as a customer to book</span>
           )}
         </div>
       ))}

@@ -134,7 +134,7 @@ const SearchFlights: React.FC<Props> = ({ customerId }) => {
                     {bookingId === String(flight.flight_id) ? 'Booking…' : 'Book This Flight'}
                   </button>
                 ) : (
-                  <span style={{ fontSize: '0.8rem', color: colors.inkMuted, fontStyle: 'italic' }}>Sign in to book</span>
+                  <span style={{ fontSize: '0.8rem', color: colors.inkMuted, fontStyle: 'italic' }}>Sign in as a customer to book</span>
                 )}
               </div>
             ))}

@@ -240,15 +240,6 @@ const Landing: React.FC = () => {
               <Reveal delay={120}>
                 <div style={{ ...landing.glassCard, padding: 24, opacity: 0.7 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                    <div style={iconBadge(colors.accent)}><FaClipboardList size={20} /></div>
-                    <h4 style={{ margin: 0 }}>Check-in</h4>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: colors.inkMuted }}>Coming soon.</p>
-                </div>
-              </Reveal>
-              <Reveal delay={240}>
-                <div style={{ ...landing.glassCard, padding: 24, opacity: 0.7 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                     <div style={iconBadge(colors.teal)}><FaCommentDots size={20} /></div>
                     <h4 style={{ margin: 0 }}>Report an Issue</h4>
                   </div>

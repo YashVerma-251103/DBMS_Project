@@ -223,17 +223,17 @@ const LoginSignUp: React.FC<Props> = ({ initialTab = "login", onClose, onLoginSu
                 <input className="auth-input" id="age" name="age" type="number" min={0} value={signupData.age} onChange={handleSignupChange} required />
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="sex">Sex</label>
-                <select className="auth-select" id="sex" name="sex" value={signupData.sex} onChange={handleSignupChange} required>
-                  <option value="" disabled>Select Sex</option>
+                <label style={label} htmlFor="sex">Sex <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span></label>
+                <select className="auth-select" id="sex" name="sex" value={signupData.sex} onChange={handleSignupChange}>
+                  <option value="">Prefer not to say</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
               <div style={fgRow}>
-                <label style={label} htmlFor="nationality">Nationality</label>
-                <input className="auth-input" id="nationality" name="nationality" type="text" value={signupData.nationality} onChange={handleSignupChange} required />
+                <label style={label} htmlFor="nationality">Nationality <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional)</span></label>
+                <input className="auth-input" id="nationality" name="nationality" type="text" value={signupData.nationality} onChange={handleSignupChange} />
               </div>
               <div style={fgRow}>
                 <label style={label} htmlFor="password">Create Password</label>

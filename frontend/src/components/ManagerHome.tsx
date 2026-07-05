@@ -42,6 +42,15 @@ const ManagerHome: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // RequireAuth already guarantees a valid manager session by the time this renders.
+  let currentUser: { name?: string } | null = null;
+  try { currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null'); } catch { currentUser = null; }
+
+  const handleLogout = () => {
+    localStorage.removeItem('currentUser');
+    navigate('/', { replace: true });
+  };
+
   useEffect(() => { fetchData(); }, [activeTab]);
 
   const fetchData = async () => {
@@ -190,7 +199,7 @@ const ManagerHome: React.FC = () => {
             <div style={dash.profileRow}>
               <div style={dash.avatar}><MdPeople size={22} /></div>
               <div style={dash.profileMeta}>
-                <span style={dash.profileName}>Manager User</span>
+                <span style={dash.profileName}>{currentUser?.name || 'Manager User'}</span>
                 <span style={dash.profileRole}>Facility Manager</span>
               </div>
             </div>
@@ -198,7 +207,7 @@ const ManagerHome: React.FC = () => {
               style={dash.logoutBtn(logoutHov)}
               onMouseEnter={() => setLogoutHov(true)}
               onMouseLeave={() => setLogoutHov(false)}
-              onClick={() => navigate('/login', { replace: true })}
+              onClick={handleLogout}
             >
               <FaSignOutAlt size={16} /> Logout
             </button>

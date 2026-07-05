@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaPlaneDeparture, FaCouch, FaMapMarkedAlt, FaStore, FaCalendarCheck, FaClipboardList, FaCommentDots, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaPlaneDeparture, FaCouch, FaMapMarkedAlt, FaStore, FaCalendarCheck, FaClipboardList, FaCommentDots, FaUserCircle, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 import SearchFlights from './SearchFlights';
 import LoungeSection from '../components/landing/LoungeSection';
 import NavigationSection from '../components/landing/NavigationSection';
@@ -8,7 +8,7 @@ import InventorySection from '../components/landing/InventorySection';
 import MyBookings from '../components/landing/MyBookings';
 import ReportIssue from '../components/landing/ReportIssue';
 import LoginSignUp from '../components/LoginSignUp';
-import { landing, colors, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
+import { landing, colors, elevation, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
 import { AIRPORT } from '../config/airport';
 import { DASHBOARD_PATH } from '../types';
 
@@ -60,6 +60,7 @@ const Landing: React.FC = () => {
   // the modal auto-opened, rather than a separate page, so RequireAuth's redirect and any
   // existing links to /login keep working without a special case anywhere else.
   const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(location.pathname === '/login' ? 'login' : null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     try { setCurrentUser(JSON.parse(localStorage.getItem('currentUser') || 'null')); }
@@ -68,7 +69,15 @@ const Landing: React.FC = () => {
 
   const isCustomer = currentUser?.role === 'customer';
 
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollTo = (id: string) => {
+    setMobileNavOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToTop = () => {
+    setMobileNavOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
@@ -86,24 +95,37 @@ const Landing: React.FC = () => {
       {/* Header */}
       <header style={landing.header(scrolled, isMobile)}>
         <div style={landing.headerInner(isMobile)}>
-          <h1 style={landing.logo(scrolled)}>
+          <h1
+            style={{ ...landing.logo(scrolled), cursor: 'pointer' }}
+            onClick={scrollToTop}
+          >
             <FaPlaneDeparture style={{ marginRight: 10, verticalAlign: 'middle' }} />
             {isMobile ? AIRPORT.shortName : AIRPORT.name}
           </h1>
 
-          <ul style={landing.navLinks(isMobile)}>
-            {NAV_ITEMS.map(item => (
-              <li key={item.id}>
-                <button
-                  className={`nav-link-pill ${light ? 'nav-link-light' : ''}`}
-                  style={landing.navLink(light)}
-                  onClick={() => scrollTo(item.id)}
-                >
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+          {isMobile ? (
+            <button
+              onClick={() => setMobileNavOpen(o => !o)}
+              aria-label="Toggle navigation menu"
+              style={{ background: 'none', border: 'none', color: light ? '#fff' : colors.primaryDark, cursor: 'pointer', padding: 6, display: 'flex' }}
+            >
+              {mobileNavOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+            </button>
+          ) : (
+            <ul style={landing.navLinks(isMobile)}>
+              {NAV_ITEMS.map(item => (
+                <li key={item.id}>
+                  <button
+                    className={`nav-link-pill ${light ? 'nav-link-light' : ''}`}
+                    style={landing.navLink(light)}
+                    onClick={() => scrollTo(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div style={landing.authArea}>
             {currentUser ? (
@@ -150,6 +172,35 @@ const Landing: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Mobile nav dropdown — the header's own nav <ul> is display:none on mobile
+          (no room for 4 links beside the logo and auth buttons), so the hamburger
+          above opens this panel with the same items as full-width tap targets. */}
+      {isMobile && mobileNavOpen && (
+        <div style={{
+          position: 'fixed', top: 74, left: '50%', transform: 'translateX(-50%)',
+          width: 'calc(100% - 24px)', maxWidth: 1240, zIndex: 499,
+          background: colors.glassBgStrong, backdropFilter: 'blur(16px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(160%)',
+          border: '1px solid rgba(13,71,161,0.10)', borderRadius: 16, boxShadow: elevation.md,
+          overflow: 'hidden',
+        }}>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              onClick={() => scrollTo(item.id)}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left', padding: '14px 20px',
+                background: 'none', border: 'none', borderBottom: '1px solid rgba(13,71,161,0.08)',
+                color: colors.primaryDark, fontSize: '0.95rem', fontWeight: 600,
+                fontFamily: 'inherit', cursor: 'pointer',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Hero — sits directly on the page's own gradient (dark blue at the top), no
           separate background layer needed. Blobs give it depth without a media asset. */}

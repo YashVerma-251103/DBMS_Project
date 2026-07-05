@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DASHBOARD_PATH } from "../types";
 
 const page: React.CSSProperties = {
   minHeight: '100vh',
@@ -139,9 +138,10 @@ const LoginSignUp: React.FC = () => {
       if (!response.ok) { alert("Invalid credentials!"); return; }
       const user = await response.json();
       localStorage.setItem("currentUser", JSON.stringify(user));
-      const path = DASHBOARD_PATH[user.role];
-      if (path) navigate(path);
-      else alert("Logged in, but role not recognized for redirection.");
+      // Landing is the universal home for every role now, not just customers — staff
+      // see a role-appropriate hub section there with a link into their own dashboard,
+      // rather than being redirected straight past it.
+      navigate("/");
     } catch (error) { console.error("Login failed:", error); }
   };
 

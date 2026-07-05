@@ -9,8 +9,11 @@ import MyBookings from '../components/landing/MyBookings';
 import ReportIssue from '../components/landing/ReportIssue';
 import { landing, colors, blob, iconBadge, useIsMobile, useScrolled, useReveal } from '../styles/ds';
 import { AIRPORT } from '../config/airport';
+import { DASHBOARD_PATH } from '../types';
 
 interface CurrentUser { name: string; role: string; customerId?: number | null; }
+
+const ROLE_LABEL: Record<string, string> = { admin: 'Administrator', manager: 'Manager', employee: 'Employee' };
 
 const Reveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
   const [ref, visible] = useReveal<HTMLDivElement>();
@@ -101,9 +104,11 @@ const Landing: React.FC = () => {
               <>
                 <button
                   className={`nav-link-pill ${light ? 'nav-link-light' : ''}`}
-                  style={{ ...landing.navLink(light), display: 'flex', alignItems: 'center', gap: 6 }}
-                  onClick={() => navigate('/profile')}
-                  aria-label="View profile"
+                  style={{ ...landing.navLink(light), display: 'flex', alignItems: 'center', gap: 6, cursor: isCustomer ? 'pointer' : 'default' }}
+                  // /profile is customer-only (RequireAuth) — staff have no generic
+                  // profile page yet, so their "Hi, {name}" is a plain label, not a link.
+                  onClick={isCustomer ? () => navigate('/profile') : undefined}
+                  aria-label={isCustomer ? 'View profile' : undefined}
                 >
                   <FaUserCircle size={18} /> {!isMobile && `Hi, ${currentUser.name}`}
                 </button>
@@ -162,6 +167,38 @@ const Landing: React.FC = () => {
         </section>
       </div>
 
+      {/* Staff hub — Landing is the universal post-login home for every role now, not
+          just customers. Admin/Manager/Employee get a clear, prominent way back into
+          their operational dashboard (a separate route, since dense CRUD tables don't
+          fit a scrolling consumer page) rather than being auto-redirected past this
+          entirely like before. */}
+      {currentUser && !isCustomer && (
+        <section style={{ ...landing.section(isMobile), position: 'relative', zIndex: 3, paddingTop: 0 }}>
+          <Reveal>
+            <div style={{
+              ...landing.glassCard, padding: isMobile ? 22 : 32, display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center',
+              justifyContent: 'space-between', gap: 20,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={iconBadge(colors.accent)}><FaUserCircle size={22} /></div>
+                <div>
+                  <span style={landing.sectionEyebrow(colors.accent)}>{ROLE_LABEL[currentUser.role] || currentUser.role}</span>
+                  <h2 style={{ ...landing.sectionHeading(isMobile), margin: 0 }}>Welcome back, {currentUser.name}</h2>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate(DASHBOARD_PATH[currentUser.role] || '/')}
+                className="cta-primary-hover"
+                style={{ ...landing.ctaPrimary(false), padding: '13px 26px', fontSize: '0.95rem', whiteSpace: 'nowrap' }}
+              >
+                Go to {ROLE_LABEL[currentUser.role] || 'Your'} Dashboard →
+              </button>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
       {/* Search card — plain document flow, generous spacing from the hero text above.
           (Previously pulled up with a negative margin for an "overlap" effect, but that
           fought directly against having real breathing room here — picked one, not both.) */}
@@ -214,7 +251,11 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* What you get */}
+      {/* What you get — customer-acquisition teaser (logged out) or the real widgets
+          (logged in as a customer). Logged-in staff get neither: the hub section above
+          already covers "what to do next" for them, and the "sign in" teaser copy
+          below would be nonsensical for someone already authenticated. */}
+      {(!currentUser || isCustomer) && (
       <section id="account" style={{ ...landing.section(isMobile), position: 'relative' }}>
         <div className="float-blob-slow" style={blob('rgba(30,136,229,0.10)', 340, '10%', '82%')} />
         <Reveal>
@@ -264,6 +305,7 @@ const Landing: React.FC = () => {
           )}
         </Reveal>
       </section>
+      )}
 
       <footer style={landing.footer}>
         &copy; {new Date().getFullYear()} {AIRPORT.footerText}

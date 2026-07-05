@@ -1,3 +1,8 @@
+> **Status: implemented.** This was the original feature brief, written before any of it
+> existed. Everything listed below has since been built — see `Implementation.md` for the
+> decisions made along the way, and `users/` for how each role actually experiences it
+> today. Kept as-is below for historical reference, not as a live spec.
+
 Non-logged in services for user (on landing page of website):
 - flight details
     - travel planning

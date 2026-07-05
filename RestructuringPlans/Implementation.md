@@ -12,11 +12,11 @@ update the status markers as work lands.
 | 2 | Backend auth/identity routes | ✅ Done |
 | 3 | Remaining backend routes (inventory, flights, bookings, feedback, incidents) | ✅ Done |
 | 4 | Frontend identity fixes + route guards | ✅ Done |
-| 5 | Landing page | ✅ Done (core booking loop; check-in/report-an-issue widgets are placeholders) |
+| 5 | Landing page | ✅ Done (core booking loop; report-an-issue widget is a placeholder) |
 | 6 | Inventory admin/manager UI | ⏳ Pending |
 | 7 | Incident/complaint extension (UI) | ⏳ Pending (Landing's "Report an Issue" widget is a placeholder) |
 | 8 | Flight/lounge booking confirmation UI | ✅ Done (folded into Step 5 — see below) |
-| 9 | Check-in tab | ⏳ Pending (Landing's "Check-in" widget is a placeholder) |
+| 9 | Check-in tab | ✅ Done (folded into My Bookings — see below) |
 | 10 | Admin staff-provisioning UI | ⏳ Pending |
 
 Branch: `restructure-impl`. Everything in steps 1–4 has been run against the live Supabase
@@ -55,9 +55,10 @@ check-in, complaints).
    Admin/Manager/Employee keep distinct sidebar dashboards (they're doing operational
    CRUD work). Customers are browsing/booking, so logging in enhances the same page they
    were already on — booking buttons appear on flight/lounge search results, and the
-   "what you get" teaser cards become real widgets (My Bookings, Check-in, Report an
-   Issue) — instead of redirecting to a differently-laid-out `CustomerHome`. `CustomerHome`
-   is removed; `DASHBOARD_PATH.customer` points at `/`.
+   "what you get" teaser cards become real widgets (My Bookings — with check-in folded
+   in as a per-row action, Report an Issue) — instead of redirecting to a
+   differently-laid-out `CustomerHome`. `CustomerHome` is removed;
+   `DASHBOARD_PATH.customer` points at `/`.
 
 ---
 
@@ -369,11 +370,12 @@ Navigation section) — `customer_tab/Profile.tsx` survives, now routed directly
 `/profile`. Added `Flight.flight_id` and a new `Inventory` interface to `types/index.ts`
 (both were missing despite the backend already returning them).
 
-**Scope note:** Check-in (Step 9) and Report-an-Issue (Step 7's customer half) render as
-"Coming soon" placeholders in the "what you get" slots — they're real, separate features
-with their own backend interactions already built, just not wired into a UI yet. My
-Bookings (part of Step 8) is fully wired since it's the natural companion to the booking
-buttons.
+**Scope note:** Report-an-Issue (Step 7's customer half) renders as a "Coming soon"
+placeholder in the "what you get" slot — a real, separate feature with its backend
+interaction already built, just not wired into a UI yet. My Bookings (part of Step 8) is
+fully wired since it's the natural companion to the booking buttons. Check-in (Step 9)
+is also fully wired — done later, as a per-row action inside My Bookings rather than its
+own slot (see Step 9 below).
 
 **Verified live in a real browser** (chrome-devtools MCP): logged-out and logged-in
 (customer) states, desktop (1440px) and mobile (390px) widths, scroll-reveal and sticky
@@ -381,10 +383,10 @@ glass header confirmed via DOM inspection (a full-page screenshot's stitching ma
 look broken in static captures — false alarms). Two real bugs caught by this and fixed:
 fetch responses weren't guarded against non-array error bodies (crashed the whole page on
 any API failure — now falls back to `[]`), and empty result sets rendered nothing instead
-of a message. `npx tsc --noEmit` clean throughout. **Not verified against live data** —
-the Supabase IPv6 connectivity issue from the earlier hardening pass recurred during this
-session; the page was confirmed to degrade gracefully (error states, not crashes) rather
-than confirmed correct against real rows. Re-check once connectivity is back.
+of a message. `npx tsc --noEmit` clean throughout. **Verified against live data** —
+connectivity was fixed by switching `DATABASE_URL` to Supabase's transaction pooler
+(`aws-1-ap-southeast-1.pooler.supabase.com:6543`, see `DatabaseConnectivity.md`); real
+flights/lounges/directory/inventory rows confirmed rendering correctly.
 
 ## ⏳ Step 6 — Inventory admin/manager UI
 
@@ -409,11 +411,15 @@ Lounge sections for logged-in customers (`POST /bookings/create` with `flight_id
 customer's own bookings (reuses `customer_tab/Booking.tsx`'s list/edit logic, adapted to
 render inside Landing rather than `CustomerHome`).
 
-## ⏳ Step 9 — Check-in tab
+## ✅ Step 9 — Check-in tab (done, folded into My Bookings)
 
-New component rendering inside Landing's "Check-in" slot (not a `CustomerHome` tab):
-lists the customer's flight bookings, a "Check In" button per row (disabled if already
-`checked_in`) calling `PUT /bookings/checkin`.
+Built as a "Check In" button directly on each qualifying row inside the existing
+`MyBookings` widget, not a separate component/slot as originally planned — My Bookings
+already listed each flight booking's `checked_in` status, so a standalone "Check-in"
+widget would've just been a second view over the same rows. Button renders only for
+`flight_id` bookings where `checked_in` is false, calls `PUT /bookings/checkin`, refetches
+the list on success (button disappears, status line flips to "Checked in"). The
+placeholder "Check-in" card in Landing's account section was removed accordingly.
 
 ## ⏳ Step 10 — Admin staff-provisioning UI
 
@@ -442,15 +448,19 @@ one file still using the old 6-value inline array).
    search all render and return data without auth; "what you get" cards route to `/login`.
 2. Landing page, logged in as customer: same visit to `/` (no redirect) now shows "Book
    This Flight"/"Book This Lounge" buttons and the "what you get" slots replaced by real
-   My Bookings / Check-in / Report an Issue widgets.
+   My Bookings (check-in included as a per-row action) / Report an Issue widgets.
 3. Inventory admin UI: create/edit/delete an item as admin or manager, confirm it shows
    up in the public landing-page search.
 4. Complaint flow end-to-end: file a complaint as a customer from Landing's Report-an-Issue
    widget, confirm it appears in `admin_tab/IncidentTab.tsx` with `Assigned_To` populated.
 5. Flight booking UI: search a flight, book it as a logged-in customer from Landing's "Book"
    action, confirm it appears in Landing's My Bookings widget.
-6. Check-in UI: check in a flight booking from Landing's Check-in widget, confirm
-   `Checked_In` flips and a lounge booking shows no check-in option.
+6. ~~Check-in UI: check in a flight booking from Landing's Check-in widget, confirm
+   `Checked_In` flips and a lounge booking shows no check-in option.~~ Done and
+   **verified live**: created a real flight booking, clicked Check In in the browser,
+   confirmed `checked_in` flipped to `true` via the API and the button correctly
+   disappeared from the UI afterward. Lounge bookings correctly show no check-in option
+   (guarded on `flight_id`).
 7. Staff provisioning UI: create a new staff member with a Department from the admin UI,
    confirm the generated `loginId` logs in and lands on `EmployeeHome` with Department
    visible on the profile tab.

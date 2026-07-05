@@ -39,3 +39,9 @@ protocol correctness.
 - `backend/src/db.ts` now has `connectionTimeoutMillis: 10000` and a `pool.on('error', ...)`
   logger (see commit `b1e5d08`), so whichever of the above is wrong will fail within 10s
   with a message in the server log, instead of hanging.
+
+## Update: applied and confirmed working
+
+`DATABASE_URL` now points at the transaction pooler (`aws-1-ap-southeast-1.pooler.supabase.com:6543`,
+username `postgres.<project-ref>`). Confirmed live — `/flights/search` and other routes
+return real rows on this network, no more `ENOTFOUND`.

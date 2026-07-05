@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBars, FaTimes, FaEdit, FaSignOutAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaEdit, FaSignOutAlt, FaHome } from 'react-icons/fa';
 import { MdPeople, MdBusiness, MdEvent, MdFeedback, MdAttachMoney, MdInventory, MdSchedule } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
 import { EMPLOYEE_ROLES, DEPARTMENTS } from '../types';
@@ -38,6 +38,7 @@ const ManagerHome: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [logoutHov, setLogoutHov] = useState(false);
+  const [backHov, setBackHov] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -161,6 +162,14 @@ const ManagerHome: React.FC = () => {
       <nav style={dash.sidebar(isMobile, sidebarOpen)}>
         <div style={dash.sidebarHead}>
           <h2 style={dash.sidebarH2}>Manager Portal</h2>
+          <button
+            style={dash.backLink(backHov)}
+            onMouseEnter={() => setBackHov(true)}
+            onMouseLeave={() => setBackHov(false)}
+            onClick={() => navigate('/')}
+          >
+            <FaHome size={13} /> Back to Landing
+          </button>
         </div>
         <div style={dash.sidebarBody}>
           <ul style={dash.navList}>

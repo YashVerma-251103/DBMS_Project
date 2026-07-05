@@ -416,6 +416,24 @@ export const dash = {
     color: '#fff',
   } as CSSProperties,
 
+  // Every dashboard needs a way back to Landing that isn't "hope the browser back
+  // button does the right thing" — this sits right under the portal title.
+  backLink: (hovered: boolean): CSSProperties => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    padding: '6px 0',
+    background: 'none',
+    border: 'none',
+    color: hovered ? '#fff' : 'rgba(255,255,255,0.75)',
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'color 0.15s ease',
+  }),
+
   sidebarBody: {
     display: 'flex',
     flexDirection: 'column',

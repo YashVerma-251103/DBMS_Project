@@ -13,7 +13,7 @@ update the status markers as work lands.
 | 3 | Remaining backend routes (inventory, flights, bookings, feedback, incidents) | ✅ Done |
 | 4 | Frontend identity fixes + route guards | ✅ Done |
 | 5 | Landing page | ✅ Done (core booking loop; report-an-issue widget is a placeholder) |
-| 6 | Inventory admin/manager UI | ⏳ Pending |
+| 6 | Inventory admin/manager UI | ✅ Done |
 | 7 | Incident/complaint extension (UI) | ⏳ Pending (Landing's "Report an Issue" widget is a placeholder) |
 | 8 | Flight/lounge booking confirmation UI | ✅ Done (folded into Step 5 — see below) |
 | 9 | Check-in tab | ✅ Done (folded into My Bookings — see below) |
@@ -449,8 +449,14 @@ one file still using the old 6-value inline array).
 2. Landing page, logged in as customer: same visit to `/` (no redirect) now shows "Book
    This Flight"/"Book This Lounge" buttons and the "what you get" slots replaced by real
    My Bookings (check-in included as a per-row action) / Report an Issue widgets.
-3. Inventory admin UI: create/edit/delete an item as admin or manager, confirm it shows
-   up in the public landing-page search.
+3. ~~Inventory admin UI: create/edit/delete an item as admin or manager, confirm it shows
+   up in the public landing-page search.~~ Done and **verified live**: new
+   `admin_tab/InventoryTab.tsx` (copies `FacilityTab.tsx`'s shape), wired into
+   `AdminHome.tsx`'s tab list. Tested create (real item against a real facility, joined
+   facility name/location/contact rendered correctly in the table), update, and delete
+   against live data. Manager-side inventory management already existed via
+   `ManagerHome.tsx`'s generic schema renderer since step 4 — this was specifically the
+   missing admin-side dedicated tab.
 4. Complaint flow end-to-end: file a complaint as a customer from Landing's Report-an-Issue
    widget, confirm it appears in `admin_tab/IncidentTab.tsx` with `Assigned_To` populated.
 5. Flight booking UI: search a flight, book it as a logged-in customer from Landing's "Book"

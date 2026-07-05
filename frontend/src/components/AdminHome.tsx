@@ -7,6 +7,7 @@ import { AIRPORT } from '../config/airport';
 
 import FlightsTab from './admin_tab/FlightsTab';
 import FacilityTab from './admin_tab/FacilityTab';
+import InventoryTab from './admin_tab/InventoryTab';
 import BookingsTab from './admin_tab/BookingsTab';
 import IncidentTab from './admin_tab/IncidentTab';
 import FeedbackTab from './admin_tab/FeedbackTab';
@@ -17,6 +18,7 @@ import StaffScheduleTab from './admin_tab/Staff_ScheduleTab';
 const tabs: Record<string, { label: string; Component: React.FC }> = {
   flights:        { label: 'Flights',       Component: FlightsTab },
   facility:       { label: 'Facility',       Component: FacilityTab },
+  inventory:      { label: 'Inventory',      Component: InventoryTab },
   bookings:       { label: 'Bookings',       Component: BookingsTab },
   incidents:      { label: 'Incidents',      Component: IncidentTab },
   feedback:       { label: 'Feedback',       Component: FeedbackTab },

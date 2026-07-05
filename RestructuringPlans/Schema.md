@@ -1,3 +1,11 @@
+> **Status: mostly implemented, differently shaped.** The staff hierarchy below (Management
+> > Department > Role, with nested categories) made it in as data, not structure — it's a
+> flat `Employee.Role` CHECK-list (22 values) plus one `Employee.Department` column, not a
+> nested table hierarchy (see Implementation.md decision #3). Private jets/owner-flights,
+> fuel/food/cargo/crew-assignment tracking, and Communication as a user-facing feature were
+> never built — Flight is public/commercial only. See `database/migrations/0001_baseline.sql`
+> for the actual current schema and `users/` for what each role can do with it.
+
 # Navigation system:
 ## Inside Airport
 - To stores, lounges, boarding gatesm counters, terminals

@@ -12,9 +12,9 @@ update the status markers as work lands.
 | 2 | Backend auth/identity routes | ✅ Done |
 | 3 | Remaining backend routes (inventory, flights, bookings, feedback, incidents) | ✅ Done |
 | 4 | Frontend identity fixes + route guards | ✅ Done |
-| 5 | Landing page | ✅ Done (core booking loop; report-an-issue widget is a placeholder) |
+| 5 | Landing page | ✅ Done |
 | 6 | Inventory admin/manager UI | ✅ Done |
-| 7 | Incident/complaint extension (UI) | ⏳ Pending (Landing's "Report an Issue" widget is a placeholder) |
+| 7 | Incident/complaint extension (UI) | ✅ Done |
 | 8 | Flight/lounge booking confirmation UI | ✅ Done (folded into Step 5 — see below) |
 | 9 | Check-in tab | ✅ Done (folded into My Bookings — see below) |
 | 10 | Admin staff-provisioning UI | ✅ Done |
@@ -457,8 +457,19 @@ one file still using the old 6-value inline array).
    against live data. Manager-side inventory management already existed via
    `ManagerHome.tsx`'s generic schema renderer since step 4 — this was specifically the
    missing admin-side dedicated tab.
-4. Complaint flow end-to-end: file a complaint as a customer from Landing's Report-an-Issue
-   widget, confirm it appears in `admin_tab/IncidentTab.tsx` with `Assigned_To` populated.
+4. ~~Complaint flow end-to-end: file a complaint as a customer from Landing's
+   Report-an-Issue widget, confirm it appears in `admin_tab/IncidentTab.tsx` with
+   `Assigned_To` populated.~~ Done and **verified live**: new
+   `components/landing/ReportIssue.tsx` (facility select + description textarea,
+   `POST /incidents/insert?...&reported_by_customer_id=`, past-reports list below).
+   Filed a real complaint as a real customer, confirmed it appeared instantly in the
+   widget and in `IncidentTab.tsx` as "Customer #1" with `Assigned_To` auto-populated
+   to the facility's manager (backend's existing auto-assignment, no changes needed
+   there). `IncidentTab.tsx` updated for the dual reporter type: table now shows
+   "Employee #X" / "Customer #X" plus a new Assigned To column; search gained a
+   Customer ID filter; create/edit form replaced the employee-only required field with
+   both reporter fields (exclusive arc — filling one clears the other, confirmed via
+   direct DOM check) plus an optional Assigned To override.
 5. Flight booking UI: search a flight, book it as a logged-in customer from Landing's "Book"
    action, confirm it appears in Landing's My Bookings widget.
 6. ~~Check-in UI: check in a flight booking from Landing's Check-in widget, confirm

@@ -300,6 +300,7 @@ DBMS_Project/
 ### Prerequisites
 - Node.js 18+
 - A Supabase project (or local PostgreSQL)
+- Docker (optional — see [Docker](#docker) to run the stack in containers instead of steps 3–4)
 
 ### 1. Environment
 Create `.env` in the project root:
@@ -330,6 +331,40 @@ cd backend && npm install && npm run dev
 ```bash
 cd frontend && npm install && npm start
 ```
+
+---
+
+## Docker
+
+Runs the whole app in two containers. The database is **not** containerized — it stays on
+Supabase, so `.env` (step 1 above) is still required.
+
+```bash
+docker compose up --build      # frontend on :3000, backend on :5000
+```
+
+| Service | Image | Notes |
+|---|---|---|
+| `backend` | multi-stage `tsc` → `node dist` | reads `.env` via `env_file`; `/health` is the liveness probe |
+| `frontend` | multi-stage CRA build → `nginx:alpine` | serves the static bundle and reverse-proxies `/api` |
+
+**How the frontend reaches the API.** nginx proxies `/api/*` to `backend:5000` over the compose
+network, stripping the prefix (`/api/users/login` → `/users/login`). The bundle therefore uses a
+*relative* base URL, so the same image runs on any host with no rebuild — and because the calls
+are same-origin, CORS is not load-bearing in the container path.
+
+The base URL comes from `REACT_APP_API_URL` (build arg, defaults to `/api`) and is consumed in
+exactly one place, `frontend/src/api/index.ts`. Outside Docker it falls back to
+`http://localhost:5000`, so `npm start` works unchanged. **Never reintroduce a hardcoded
+`http://localhost:5000` in a component** — CRA inlines it at build time, which re-bakes the
+backend origin into the bundle and breaks any non-localhost deployment.
+
+Gotchas:
+- **Node 24, not 20.** `package-lock.json` was authored by npm 11; the npm 10 in `node:20`
+  fails `npm ci` with `Missing: yaml@2.9.0 from lock file`. Keep the image's npm ≥ the lock's.
+- Migrations are **not** run from a container. `database/` is deliberately excluded from the
+  backend image — keep using `cd backend && npm run migrate` against Supabase.
+- Port 6543 blocking (see note below) applies to containers too; they use the host's network.
 
 ---
 

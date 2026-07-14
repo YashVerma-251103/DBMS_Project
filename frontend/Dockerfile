@@ -1,5 +1,7 @@
+# node 24, not 20: see backend/Dockerfile — npm 10 rejects this lockfile.
+
 # ── build ────────────────────────────────────────────
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./

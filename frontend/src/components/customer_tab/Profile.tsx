@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User } from "../../types";
-
-const API = "http://localhost:5000";
+import API from "../../api";
 
 const Profile: React.FC = () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");

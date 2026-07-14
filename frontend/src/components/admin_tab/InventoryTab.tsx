@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Inventory } from "../../types";
+import API from "../../api";
 
-const API = "http://localhost:5000";
 const emptyInventory = { inventory_id: 0, facility_id: 0, item_name: "", quantity: "", price: "", supplier: "" };
 
 const InventoryTab: React.FC = () => {

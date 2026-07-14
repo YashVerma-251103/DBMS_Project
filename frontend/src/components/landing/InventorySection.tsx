@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { FaSearch, FaStore } from 'react-icons/fa';
 import { Inventory } from '../../types';
 import { landing, colors } from '../../styles/ds';
-
-const API = 'http://localhost:5000';
+import API from '../../api';
 
 const InventorySection: React.FC = () => {
   const [query, setQuery] = useState('');

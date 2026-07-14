@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaExclamationCircle, FaPaperPlane } from 'react-icons/fa';
 import { Incident, Facility } from '../../types';
 import { colors } from '../../styles/ds';
-
-const API = 'http://localhost:5000';
+import API from '../../api';
 
 interface Props { customerId: number; }
 

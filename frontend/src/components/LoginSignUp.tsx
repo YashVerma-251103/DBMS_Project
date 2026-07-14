@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import API from "../api";
 
 const overlay: React.CSSProperties = {
   position: 'fixed',
@@ -136,7 +137,7 @@ const LoginSignUp: React.FC<Props> = ({ initialTab = "login", onClose, onLoginSu
     if (signupData.password !== signupData.confirmPassword) { alert("Passwords don't match!"); return; }
     const loginId = `${signupData.contactNumber}_customer`;
     try {
-      const response = await fetch("http://localhost:5000/users", {
+      const response = await fetch(`${API}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,7 +162,7 @@ const LoginSignUp: React.FC<Props> = ({ initialTab = "login", onClose, onLoginSu
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/users/login", {
+      const response = await fetch(`${API}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId: loginData.loginId, password: loginData.password }),

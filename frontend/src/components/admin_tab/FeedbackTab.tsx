@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Feedback } from "../../types";
-
-const API = "http://localhost:5000";
+import API from "../../api";
 
 const FeedbackTab: React.FC = () => {
   const [searchParams, setSearchParams] = useState({ feedback_id: "", facility_id: "", customer_id: "", manager_id: "", rating: "" });

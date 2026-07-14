@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Facility } from "../../types";
+import API from "../../api";
 
-const API = "http://localhost:5000";
 const TYPES = ["Gym","Lounge","Restaurant","Shop","Other"];
 const emptyFacility = { facility_id: 0, name: "", type: "Gym", location: "", contact_no: "", opening_hours: "", manager_id: 0 };
 

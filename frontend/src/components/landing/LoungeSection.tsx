@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaCouch } from 'react-icons/fa';
 import { Facility } from '../../types';
 import { landing, colors } from '../../styles/ds';
-
-const API = 'http://localhost:5000';
+import API from '../../api';
 
 interface Props { customerId?: number | null; }
 

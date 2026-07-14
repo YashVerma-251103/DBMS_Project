@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser, FaCalendarAlt, FaSignOutAlt, FaEdit, FaHome } from 'react-icons/fa';
 import { MdBusiness } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
+import API from '../api';
 
 const entityIcons: Record<string, React.ReactElement> = {
   profile: <FaUser />, facility: <MdBusiness />, bookings: <FaCalendarAlt />,
@@ -41,8 +42,8 @@ const EmployeeHome: React.FC = () => {
       const schema = entitySchemas[activeTab];
       if (schema?.endpoint) {
         const url = activeTab === 'profile'
-          ? `http://localhost:5000/${schema.endpoint}?employee_id=${currentUser?.employeeId}`
-          : `http://localhost:5000/${schema.endpoint}`;
+          ? `${API}/${schema.endpoint}?employee_id=${currentUser?.employeeId}`
+          : `${API}/${schema.endpoint}`;
         const res = await fetch(url);
         const result = await res.json();
         setData(Array.isArray(result) ? result : [result]);
@@ -56,7 +57,7 @@ const EmployeeHome: React.FC = () => {
     e.preventDefault();
     try {
       const params = new URLSearchParams(formData).toString();
-      const res = await fetch(`http://localhost:5000/employees/update?${params}`, { method: 'PUT' });
+      const res = await fetch(`${API}/employees/update?${params}`, { method: 'PUT' });
       if (res.ok) { fetchData(); setEditMode(false); }
     } catch (err) { console.error(err); }
   };

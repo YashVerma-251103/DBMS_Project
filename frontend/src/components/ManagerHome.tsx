@@ -4,6 +4,7 @@ import { FaBars, FaTimes, FaEdit, FaSignOutAlt, FaHome } from 'react-icons/fa';
 import { MdPeople, MdBusiness, MdEvent, MdFeedback, MdAttachMoney, MdInventory, MdSchedule } from 'react-icons/md';
 import { dash, useIsMobile } from '../styles/ds';
 import { EMPLOYEE_ROLES, DEPARTMENTS } from '../types';
+import API from '../api';
 
 interface FieldDef { name: string; type: string; editable: boolean; options?: string[]; }
 interface SchemaDef { fields: FieldDef[]; endpoint: string; }
@@ -58,7 +59,7 @@ const ManagerHome: React.FC = () => {
     try {
       const schema = entitySchemas[activeTab];
       if (schema?.endpoint) {
-        const res = await fetch(`http://localhost:5000/${schema.endpoint}`);
+        const res = await fetch(`${API}/${schema.endpoint}`);
         setData(await res.json());
       }
     } catch (err) { console.error(err); } finally { setLoading(false); }
@@ -76,7 +77,7 @@ const ManagerHome: React.FC = () => {
     const method = currentItem ? 'PUT' : 'POST';
     const action = currentItem ? 'update' : 'insert';
     try {
-      const res = await fetch(`http://localhost:5000/${base}/${action}?${params}`, { method });
+      const res = await fetch(`${API}/${base}/${action}?${params}`, { method });
       if (res.ok) { fetchData(); setEditMode(false); }
     } catch (err) { console.error(err); }
   };

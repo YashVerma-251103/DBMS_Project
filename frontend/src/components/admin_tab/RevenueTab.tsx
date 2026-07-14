@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Revenue } from "../../types";
-
-const API = "http://localhost:5000";
+import API from "../../api";
 
 const RevenueTab: React.FC = () => {
   const [searchParams, setSearchParams] = useState({

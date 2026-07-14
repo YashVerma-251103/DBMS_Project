@@ -300,6 +300,7 @@ DBMS_Project/
 ### Prerequisites
 - Node.js 18+
 - A Supabase project (or local PostgreSQL)
+- Docker (optional — see [Docker](#docker) to run the stack in containers instead of steps 3–4)
 
 ### 1. Environment
 Create `.env` in the project root:
@@ -330,6 +331,22 @@ cd backend && npm install && npm run dev
 ```bash
 cd frontend && npm install && npm start
 ```
+
+---
+
+## Docker
+
+Runs the app in two containers (frontend on :3000, backend on :5000). The database is **not**
+containerized — it stays on Supabase, so `.env` from step 1 is still required.
+
+```bash
+docker compose up --build
+```
+
+Migrations still run from the host (`cd backend && npm run migrate`), not from a container.
+
+**See [`DOCKER.md`](DOCKER.md)** for the full reference: the `/api` reverse-proxy design, the
+build-time API base URL, deploying beyond compose, and the gotchas.
 
 ---
 

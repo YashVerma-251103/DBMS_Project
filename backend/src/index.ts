@@ -36,6 +36,8 @@ app.use('/feedback', feedbackRoutes);
 app.use('/customers', customerRoutes);
 app.use('/inventory', inventoryRoutes);
 
+app.get('/health', (_req, res) => res.json({ ok: true }));
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

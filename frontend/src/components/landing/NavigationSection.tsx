@@ -3,8 +3,7 @@ import { FaMapMarkerAlt, FaWalking } from 'react-icons/fa';
 import { Facility } from '../../types';
 import { landing, colors } from '../../styles/ds';
 import { AIRPORT } from '../../config/airport';
-
-const API = 'http://localhost:5000';
+import API from '../../api';
 
 const NavigationSection: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);

@@ -3,8 +3,7 @@ import axios from 'axios';
 import { FaSearch, FaPlaneDeparture } from 'react-icons/fa';
 import { Flight } from '../types';
 import { landing, colors } from '../styles/ds';
-
-const API = 'http://localhost:5000';
+import API from '../api';
 
 const statusColor = (status: string) => {
   if (status === 'On Time' || status === 'Arrived') return colors.success;

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { Incident } from "../../types";
+import API from "../../api";
 
-const API = "http://localhost:5000";
 const STATUSES = ["Reported","In Progress","Resolved"];
 
 const IncidentTab: React.FC = () => {
